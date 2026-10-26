@@ -441,13 +441,7 @@ const Sound = (() => {
     fx = ctx.createGain(); fx.connect(master); fx.connect(delay);
     filt = ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 1200; filt.Q.value = .7;
     pad = ctx.createGain(); pad.gain.value = 0; filt.connect(pad); pad.connect(master); pad.connect(delay);
-    for (let i = 0; i < 4; i++) for (const det of [-7, 7]) {
-      const o = ctx.createOscillator(); o.type = i === 0 ? 'triangle' : 'sine'; o.detune.value = det; o.frequency.value = 220;
-      const g = ctx.createGain(); g.gain.value = i === 0 ? .07 : .05; o.connect(g); g.connect(filt); o.start(); voices.push({ o, i });
-      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = .07 + Math.random() * .1; lg.gain.value = .025;
-      lfo.connect(lg); lg.connect(g.gain); lfo.start();
-    }
-    pad.gain.setTargetAtTime(.55, ctx.currentTime, 3);
+    // (no background drone: each planet gets its own music instead)
     const nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
     const src = ctx.createBufferSource(); src.buffer = nb; src.loop = true;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500;
@@ -458,7 +452,7 @@ const Sound = (() => {
   // background music dips while something is being touched, then drifts back
   function duck(sec) {
     if (!ctx) return; const t = ctx.currentTime; duckEnd = Math.max(duckEnd, t + sec);
-    for (const [g, lo, hi] of [[pad.gain, .1, .55], [musicG.gain, .1, 1]]) { g.cancelScheduledValues(t); g.setTargetAtTime(lo, t, .3); g.setTargetAtTime(hi, duckEnd, 1.5); }
+    for (const [g, lo, hi] of [[musicG.gain, .1, 1]]) { g.cancelScheduledValues(t); g.setTargetAtTime(lo, t, .3); g.setTargetAtTime(hi, duckEnd, 1.5); }
   }
   // a soft music-box note (goes through the music bus so it ducks too)
   function bell(f, vol = .04, when = 0, dur = 2.4) {

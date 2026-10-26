@@ -346,7 +346,7 @@ skyText('CHOOSE A PATH', V(1, .35, .25), 700);
 /* ================= world definition ================= */
 const PLANETS = [
   { id: 'cloud', name: 'Cotton Cloud Playground', sub: 'a recess that never ends', center: V(-50, 4, 0), R: 15,
-    sky: ['#2a1450', '#5e2c72', '#ff8fd0'], chord: [349.2, 440, 523.3, 659.3], cutoff: 1500 },
+    sky: ['#2a1450', '#5e2c72', '#ff8fd0'], chord: [174.6, 220, 261.6, 329.6], cutoff: 620 },
   { id: 'grid', name: 'Neon Grid City', sub: "the city never sleeps, so you don't have to", center: V(0, 14, -50), R: 14,
     sky: ['#04031a', '#1a0a3a', '#c03dff'], chord: [220, 261.6, 329.6, 392], cutoff: 2300 },
   { id: 'bloom', name: 'Glowshroom Falls', sub: 'the forest hums back', center: V(50, 2, 0), R: 16,
@@ -429,7 +429,7 @@ function scatter(pl, geo, mat, count, { lift = [0, 0], scale = [1, 1], colors = 
 
 /* ================= audio ================= */
 const Sound = (() => {
-  let ctx = null, master, fx, pad, filt, voices = [], on = true, fallsG = null;
+  let ctx = null, master, fx, pad, filt, voices = [], on = true, fallsG = null, musicG, noiseBuf, duckEnd = 0;
   function init() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
@@ -452,9 +452,30 @@ const Sound = (() => {
     const src = ctx.createBufferSource(); src.buffer = nb; src.loop = true;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500;
     fallsG = ctx.createGain(); fallsG.gain.value = 0; src.connect(lp); lp.connect(fallsG); fallsG.connect(master); src.start();
+    noiseBuf = nb; musicG = ctx.createGain(); musicG.gain.value = 1; musicG.connect(master); musicG.connect(delay);
   }
   function falls(v) { if (fallsG) fallsG.gain.setTargetAtTime(v, ctx.currentTime, .4); }
-  function duck(sec) { if (!ctx) return; const t = ctx.currentTime; pad.gain.setTargetAtTime(.08, t, .6); pad.gain.setTargetAtTime(.55, t + sec, 1.5); }
+  // background music dips while something is being touched, then drifts back
+  function duck(sec) {
+    if (!ctx) return; const t = ctx.currentTime; duckEnd = Math.max(duckEnd, t + sec);
+    for (const [g, lo, hi] of [[pad.gain, .1, .55], [musicG.gain, .1, 1]]) { g.cancelScheduledValues(t); g.setTargetAtTime(lo, t, .3); g.setTargetAtTime(hi, duckEnd, 1.5); }
+  }
+  // a soft music-box note (goes through the music bus so it ducks too)
+  function bell(f, vol = .04, when = 0, dur = 2.4) {
+    if (!ctx || !on) return; const t = ctx.currentTime + when;
+    for (const [m, v] of [[1, 1], [2, .22], [3.01, .07]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol * v, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + dur / m);
+      o.connect(g); g.connect(musicG); o.start(t); o.stop(t + dur + .1);
+    }
+  }
+  // a very faint, dry footstep
+  function step(freq, vol = .035) {
+    if (!ctx || !on) return; const t = ctx.currentTime;
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf; const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq * (.85 + Math.random() * .3);
+    const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .09);
+    s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 1.5, .1);
+  }
   function chord(freqs, cutoff) {
     if (!ctx) return; const t = ctx.currentTime;
     for (const v of voices) v.o.frequency.setTargetAtTime(freqs[v.i] * (v.i === 0 ? .5 : 1), t, 1.2);
@@ -483,7 +504,7 @@ const Sound = (() => {
     s.connect(f); f.connect(g); g.connect(fx); s.start(t);
   }
   function toggle() { on = !on; if (ctx) master.gain.setTargetAtTime(on ? .55 : 0, ctx.currentTime, .15); return on; }
-  return { init, chord, tone, sweep, noise, toggle, falls, duck, get on() { return on; } };
+  return { init, chord, tone, sweep, noise, toggle, falls, duck, bell, step, get on() { return on; } };
 })();
 const arp = (notes, step = .12, type = 'sine', vol = .15, dur = .7) => notes.forEach((f, i) => Sound.tone(f, dur, type, vol, i * step));
 
@@ -649,6 +670,39 @@ function makeGear(r, n, c) {
   return g;
 }
 
+// soft, swaying tufts of grass: a few curved blades, darker at the root, light at the tips
+const grassWind = { value: 0 }; updaters.push((dt, t) => grassWind.value = t);
+function grassTuft(blades = 5, h = .45) {
+  const pos = [], col = [], nor = [], idx = [];
+  for (let b = 0; b < blades; b++) {
+    const a = b / blades * Math.PI * 2 + hash3(b, 1, 1) * .9, lean = .25 + hash3(b, 2, 2) * .4, bh = h * (.65 + hash3(b, 3, 3) * .7), w = .05;
+    const dx = Math.cos(a), dz = Math.sin(a), ox = dx * .05, oz = dz * .05, base = pos.length / 3;
+    for (let s = 0; s <= 3; s++) {
+      const u = s / 3, out = lean * bh * u * u, ww = w * (1 - u * .9), k = .5 + u * .65;
+      for (const side of [-1, 1]) { pos.push(ox + dx * out - dz * ww * side, bh * u, oz + dz * out + dx * ww * side); col.push(k, k, k); nor.push(0, 1, 0); }
+    }
+    for (let s = 0; s < 3; s++) { const i = base + s * 2; idx.push(i, i + 1, i + 2, i + 1, i + 3, i + 2); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setIndex(idx);
+  return g;
+}
+function grassMat(emissive) {
+  const m = std('#ffffff', { vertexColors: true, side: THREE.DoubleSide, roughness: .85, emissive, emissiveIntensity: .14 });
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uWind = grassWind;
+    sh.vertexShader = 'uniform float uWind;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      #ifdef USE_INSTANCING
+        vec3 ip = vec3(instanceMatrix[3]);
+      #else
+        vec3 ip = vec3(0.);
+      #endif
+      float sway = sin(uWind * 1.6 + ip.x * .7 + ip.z * .5) * .6 + sin(uWind * 2.7 + ip.y * .9) * .25;
+      transformed.xz += vec2(sway, sway * .6) * .16 * position.y * position.y / .2;`);
+  };
+  return m;
+}
+
 function buildCloud(pl) {
   planetSphere(pl, '#c9a8ec', '#f1b6db', '#bfeedd', .17);
 
@@ -733,8 +787,13 @@ function buildCloud(pl) {
   placeFacing(pl, slide, at(60, -38, .12), 0, ll(50, -20));
   addCollider(slide, V(0, 0, 0), 1.1, 3.5);
   addInteract(slide, 'Go down the slide', () => {
-    const fwd = V(0, 0, 1).transformDirection(slide.matrixWorld);
-    launch(15, fwd, 9); Sound.sweep(900, 180, .9, 'triangle', .12); whisper('wheeeee');
+    for (let k = 0; k < 6; k++) Sound.noise(.05, 900, 3, .05, k * .22);   // up the ladder
+    startRide([V(0, 0, -1.65), V(0, 2.3, -1.3), V(0, 2.3, -.25)], slide, 2.8, () => {
+      player.sit = true; Sound.duck(3); Sound.noise(1.3, 1500, .7, .07); Sound.sweep(820, 260, 1.1, 'triangle', .05); whisper('wheeeee', 2000);
+      startRide([V(0, 1.67, .1), V(0, 1.64, .68), V(0, -.46, 3.82), V(0, -.42, 4.5)], slide, 5.6, () => {
+        Sound.noise(.15, 300, 1, .1); getUp(.6);
+      });
+    });
   }).note = 'slide';
 
   const swings = new THREE.Group(); const seats = []; { const pole = std('#ffd1ec', { roughness: .5 });
@@ -747,12 +806,15 @@ function buildCloud(pl) {
   }
   placeFacing(pl, swings, at(44, 2, .16), 0, ll(64, 8));
   addCollider(swings, V(-2, 0, 0), .4, 3.3); addCollider(swings, V(2, 0, 0), .4, 3.3);
-  let swingT = 99;
-  updaters.push((dt, t) => { swingT += dt; const amp = swingT < 12 ? Math.exp(-swingT / 4) : 0, idle = Math.sin(t * .8) * .05;
-    seats[0].rotation.x = idle + amp * Math.sin(swingT * 2.6); seats[1].rotation.x = idle * .7 + amp * Math.sin(swingT * 2.6 + 1.9); });
-  addInteract(swings, 'Push the swings', () => { swingT = 0; Sound.noise(.6, 400, 2, .08); arp([392, 523], .25, 'sine', .1); whisper('someone was just here. the swing is still warm.'); }).note = 'swings';
+  let swingAmp = 0, swingPh = 0;
+  updaters.push((dt, t) => { swingPh += dt * 2.6; swingAmp *= Math.exp(-dt / 4); const idle = Math.sin(t * .8) * .05;
+    seats[0].rotation.x = idle + swingAmp * Math.sin(swingPh); seats[1].rotation.x = idle * .7 + swingAmp * .8 * Math.sin(swingPh + 1.9); });
+  addInteract(swings, 'Sit on the swing', () => {
+    swingAmp = .75; arp([392, 523], .25, 'sine', .06); whisper('someone was just here. the swing is still warm.');
+    sitOnSwing(seats[0].children[2], swings, 9, () => swingAmp = Math.max(swingAmp, .7));
+  }).note = 'swings';
   mark('Overgrown Playground', ll(52, -18), 'play');
-  note('slide', 'Go down the slide'); note('swings', 'Push the glowing swings');
+  note('slide', 'Go down the slide'); note('swings', 'Sit on the glowing swings');
 
   // ---- the endless carousel plateau ----
   const carousel = new THREE.Group(); const rot = new THREE.Group(); const ponies = []; {
@@ -898,15 +960,29 @@ function buildCloud(pl) {
   placeFacing(pl, gum, at(-45, -84, .07), 0, ll(-50, -70));
   addCollider(gum, V(), .7, 3.3);
   const gumball = mesh(new THREE.SphereGeometry(.14, 12, 10), std('#ff9ad5', { emissive: '#ff9ad5', emissiveIntensity: .5 })); gumball.visible = false; gum.add(gumball);
-  let gumT = 99; const gumV = V();
-  updaters.push((dt) => { gumT += dt; if (gumT < 4) { gumV.y -= 9.8 * dt; gumball.position.addScaledVector(gumV, dt); if (gumball.position.y < .14) { gumball.position.y = .14; gumV.y *= -.45; gumV.z *= .9; } } else gumball.visible = false; });
+  let gumT = 99, handGum = null, handT = 0; const gumHand = V(), gumFrom = V(.0, 1.18, .62);
+  updaters.push((dt, t, rdt) => {
+    gumT += rdt;
+    if (gumT >= 0 && gumT < .75) {
+      gumball.visible = true;
+      if (gumT < .2) gumball.position.copy(gumFrom).add(V(0, -gumT * .4, gumT * .9));
+      else { limbs.armR.localToWorld(gumHand.set(0, -.62, .07)); gum.worldToLocal(gumHand); const u = (gumT - .2) / .55, a = V(0, 1.1, .8);
+        gumball.position.copy(a).lerp(gumHand, u); gumball.position.y += Math.sin(u * Math.PI) * .9; }
+    } else if (gumT >= .75 && gumT < 9) {
+      if (gumball.visible) { gumball.visible = false; handT = 9; player.gumArm = 1.6; Sound.tone(1568, .12, 'sine', .05); if (!handGum) { handGum = mesh(new THREE.SphereGeometry(.11, 12, 10), gumball.material); limbs.armR.add(handGum); handGum.position.set(0, -.63, .07); } handGum.visible = true; }
+    } else gumball.visible = false;
+    if (handGum && handT > 0) { handT -= rdt; if (handT <= 0) handGum.visible = false; }
+  });
   const fortunes = ['your fortune: you will find what you lost', 'your fortune: someone remembers you fondly', 'your fortune: the door you want is the third one', 'your fortune: stay a little longer'];
   let fortI = 0;
   addInteract(gum, 'Get a gumball', () => {
-    gumT = 0; gumball.visible = true; gumball.position.set(0, 1.2, .7); gumV.set(R(-.4, .4), 1.5, 2.2);
+    gumT = -1.35; gumball.visible = false; Sound.duck(4);
     gumball.material.color.set(choice(['#ff9ad5', '#a8f0ff', '#fff1a8', '#c6f7e4'])); gumball.material.emissive.copy(gumball.material.color);
-    for (let k = 0; k < 5; k++) Sound.tone(1200 - k * 120, .06, 'square', .04, k * .07); Sound.tone(523.3, .5, 'sine', .1, .45);
-    whisper(fortunes[fortI++ % fortunes.length]);
+    Sound.tone(2093, .14, 'sine', .05); Sound.tone(2637, .2, 'sine', .035, .06);                       // the coin drops in
+    for (let k = 0; k < 7; k++) Sound.noise(.035, 2600, 7, .14, .3 + k * .09);                          // crank, click click click
+    Sound.noise(.5, 1500, 1.6, .08, .9); Sound.noise(.3, 2200, 2, .05, 1.1);                            // gumballs rattle around
+    Sound.tone(700, .07, 'triangle', .05, 1.3); Sound.tone(590, .07, 'triangle', .05, 1.38); Sound.tone(500, .07, 'triangle', .05, 1.46);   // rolls down the chute
+    setTimeout(() => whisper(fortunes[fortI++ % fortunes.length]), 2100);
   }, 2.6).note = 'gumball';
 
   const booth = new THREE.Group(); {
@@ -924,11 +1000,15 @@ function buildCloud(pl) {
   }
   placeFacing(pl, booth, at(-57, -50, .07), 0, ll(-50, -70));
   addCollider(booth, V(), .9, 3.2);
-  let ringing = false;
+  let ringing = false, ringT = 0; const handset = booth.children.find(c => c.geometry && c.geometry.type === 'CapsuleGeometry'), hs0 = handset.position.clone();
+  updaters.push((dt, t, rdt) => { ringT -= rdt; handset.position.copy(hs0); if (ringT > 0) handset.position.x += Math.sin(t * 90) * .015; });
   addInteract(booth, 'Answer the telephone', () => {
-    if (ringing) return; ringing = true;
-    for (let r = 0; r < 2; r++) for (let k = 0; k < 10; k++) { Sound.tone(440, .05, 'sine', .07, r * 1.2 + k * .05); Sound.tone(480, .05, 'sine', .07, r * 1.2 + k * .05); }
-    setTimeout(() => { whisper(choice(['"hello? ...oh. it\'s you, from before."', '"are you still there? we saved you a seat."', '"come home when the streetlights come on."'])); ringing = false; }, 2400);
+    if (ringing) return; ringing = true; Sound.duck(8); ringT = 3.6;
+    for (let r = 0; r < 2; r++) for (let k = 0; k < 24; k++) Sound.tone(k % 2 ? 1180 : 1420, .08, 'sine', .04, r * 1.9 + k * .05);   // brrring... brrring
+    Sound.noise(.05, 2500, 1, .14, 3.7, 'highpass');                                                      // you pick up: click
+    Sound.noise(2.6, 480, 5, .045, 3.85);                                                                  // the line hisses softly
+    for (let k = 0; k < 9; k++) Sound.tone(210 + Math.random() * 150, .24, 'triangle', .018, 3.95 + k * .27);   // a voice, far away
+    setTimeout(() => { whisper(choice(['"hello? ...oh. it\'s you, from before."', '"are you still there? we saved you a seat."', '"come home when the streetlights come on."'])); ringing = false; }, 3900);
   }, 2.8).note = 'phone';
   mark('Curiosity Corner', ll(-51, -68), 'gum');
   note('gumball', 'Get a gumball'); note('phone', 'Answer the telephone');
@@ -1009,7 +1089,24 @@ function buildCloud(pl) {
   note('bubbles', 'Pop 10 floating bubbles');
 
   // ---- lavender fluff, clouds ----
-  scatter(pl, new THREE.ConeGeometry(.05, .3, 4).translate(0, .13, 0), std('#ffffff', { roughness: 1, emissive: '#9a78d0', emissiveIntensity: .12 }), 4200, { colors: ['#c7a6ee', '#bc9ae8', '#d4b6f6', '#e8b8e0', '#cdb0f2'], scale: [.6, 1.3], tilt: .3, filter: offRoad });
+  scatter(pl, grassTuft(5, .48), grassMat('#9a78d0'), 6500, { colors: ['#c7a6ee', '#bc9ae8', '#d4b6f6', '#e8b8e0', '#cdb0f2', '#f2bfe3', '#bfe6dc'], scale: [.7, 1.5], tilt: .15, filter: offRoad });
+  scatter(pl, grassTuft(7, .75), grassMat('#c070c0'), 900, { colors: ['#e8b8e0', '#d4b6f6', '#f5c4e4'], scale: [.8, 1.3], tilt: .1, filter: offRoad });
+  // tiny pastel blossoms tucked into the grass
+  scatter(pl, new THREE.IcosahedronGeometry(.07, 0).translate(0, .32, 0), new THREE.MeshBasicMaterial({ color: '#ffffff' }), 600, { colors: Object.assign(['#ffe3f4', '#fff6b8', '#d9f6ff', '#ffd0ec'], { k: 1.3 }), scale: [.8, 1.4], filter: offRoad });
+  // a whimsical music box that plays while you're on this planet
+  { const N = { F3: 174.6, G3: 196, A3: 220, Bb3: 233.1, C4: 261.6, D4: 293.7, F4: 349.2, G4: 392, A4: 440, Bb4: 466.2, C5: 523.3, D5: 587.3, E5: 659.3, F5: 698.5 };
+    const tune = [['C5', 'A4', 'F4'], ['G4', 'A4', 'C5'], ['D5', 'C5', 'A4'], ['G4', null, null], ['A4', 'C5', 'D5'], ['F5', 'D5', 'C5'], ['A4', 'G4', 'A4'], ['F4', null, null],
+      ['F4', 'A4', 'C5'], ['Bb4', 'A4', 'G4'], ['A4', 'C5', 'F5'], ['E5', null, null], ['D5', 'C5', 'Bb4'], ['A4', 'G4', 'C5'], ['A4', 'G4', 'G4'], ['F4', null, null]];
+    const bass = ['F3', 'C4', 'D4', 'C4', 'F3', 'Bb3', 'F3', 'C4', 'F3', 'Bb3', 'F3', 'C4', 'Bb3', 'C4', 'C4', 'F3'];
+    let beat = -1, acc = 0;
+    updaters.push((dt, t, rdt) => {
+      if (currentPlanet !== pl || (mode !== 'play' && mode !== 'map')) { beat = -1; acc = 0; return; }
+      acc -= rdt; if (acc > 0) return; acc += .46; beat = (beat + 1) % (tune.length * 3 + 6);
+      const bar = Math.floor(beat / 3), b = beat % 3; if (bar >= tune.length) return;
+      const n = tune[bar][b]; if (n) Sound.bell(N[n], .032, 0, 2.6);
+      if (b === 0) Sound.bell(N[bass[bar]], .022, 0, 3.4);
+      if (b === 2 && bar % 4 === 3) Sound.bell(N[bass[bar]] * 2, .014, .1, 2);
+    }); }
   scatter(pl, new THREE.IcosahedronGeometry(.22, 1).translate(0, .12, 0), std('#ffffff', { roughness: 1, emissive: '#b48ce0', emissiveIntensity: .15 }), 700, { colors: ['#d9bdf8', '#c6a6f0', '#f5c4e4', '#c9efe0'], scale: [.7, 1.5], filter: offRoad });
   const puffMat = std('#fff3fb', { emissive: '#ffc6ea', emissiveIntensity: .4, roughness: 1 });
   scatter(pl, new THREE.IcosahedronGeometry(1, 3), puffMat, 55, { lift: [-.6, 0], scale: [.5, 1.2], pad: .05, hardOnly: false, filter: offRoad });
@@ -2335,7 +2432,8 @@ function buildPixel(pl) {
       pv.add(mesh(new THREE.BoxGeometry(.66, .08, .34), std(c), 0, -2.07, 0)); swings.push(pv); }
     placeFacing(pl, sw, swD, 0, ll(54, 118)); addCollider(sw, V(-1.6, 0, 0), .45, 2.7); addCollider(sw, V(1.6, 0, 0), .45, 2.7);
     updaters.push((dt, t) => { swingAmp = Math.max(.12, swingAmp - dt * .1); swings.forEach((s, i) => s.rotation.x = Math.sin(t * 1.9 + i * 1.3) * swingAmp); });
-    addInteract(sw, 'Take a swing', () => { swingAmp = .95; Sound.noise(.6, 300, 2, .08); Sound.noise(.6, 300, 2, .08, 1.6); whisper(choice(['you swing so high you can see the other planets', 'the chains creak like a summer you forgot', 'pump your legs. higher. higher.'])); }, 3, 1).note = 'swing';
+    addInteract(sw, 'Take a swing', () => { swingAmp = .8; whisper(choice(['you swing so high you can see the other planets', 'the chains creak like a summer you forgot', 'pump your legs. higher. higher.']));
+      sitOnSwing(swings[0].children[2], sw, 9, () => swingAmp = Math.max(swingAmp, .75)); }, 3, 1).note = 'swing';
     mark(null, swD, 'play'); }
 
   // ---- the Level Tune-Man ----
@@ -3030,7 +3128,7 @@ const limbs = {}; {
 const shadow = new THREE.Mesh(new THREE.CircleGeometry(.55, 24), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: .32, depthWrite: false }));
 scene.add(shadow);
 
-const player = { p: cloud.center.clone().addScaledVector(Y, cloud.R), vel: V(), up: Y.clone(), fwd: V(1, 0, 0), face: V(1, 0, 0), grounded: true, airTime: 0, squash: 0 };
+const player = { sit: false, gumArm: 0, p: cloud.center.clone().addScaledVector(Y, cloud.R), vel: V(), up: Y.clone(), fwd: V(1, 0, 0), face: V(1, 0, 0), grounded: true, airTime: 0, squash: 0 };
 const camUp = Y.clone(), camPos = V(130, 60, 0);
 let pitch = .38, camDist = 8.5, yawIn = 0, pitchIn = 0;
 let mode = 'attract', playTime = 0;
@@ -3064,7 +3162,20 @@ function travelThroughDoor(pl) {
   flash(); Sound.sweep(300, 1200, .6, 'sine', .15); Sound.noise(.8, 3000, .5, .1);
   setTimeout(() => { door.userData.pivot.rotation.y = 0; const others = PLANETS.filter(p => p !== pl); arriveAt(pl.doorAnywhere ? others[Math.floor(Math.random() * others.length)] : PLANETS[(PLANETS.indexOf(pl) + 1) % PLANETS.length]); whisper('you step through and wake up somewhere else', 3000); }, 260);
 }
-let ride = null;
+let ride = null, hold = null;   // hold: a little scripted pose (sitting on a swing, getting up) that steps instead of walking
+function sitOnSwing(seat, frame, dur, keep) {
+  let t = 0, lastA = 0, lastV = 0; player.sit = true; const sp = V(), up = V(), f = V();
+  hold = { step(dt) {
+    t += dt; keep && keep(); seat.getWorldPosition(sp); up.set(0, 1, 0).transformDirection(frame.matrixWorld); f.set(0, 0, 1).transformDirection(frame.matrixWorld);
+    player.p.copy(sp).addScaledVector(up, -.66); player.up.copy(up); player.vel.set(0, 0, 0); player.grounded = true;
+    player.face.copy(f); player.fwd.lerp(f, 1 - Math.exp(-dt * 2)).normalize();
+    const a = seat.parent.rotation.x, v = a - lastA;   // a soft creak each time the swing turns around
+    if (v * lastV < 0 && Math.abs(a) > .1) { Sound.sweep(760 + Math.random() * 80, 600, .22, 'triangle', .012); Sound.noise(.12, 1300, 5, .012); }
+    lastA = a; if (v) lastV = v;
+    if (jumpQueued || t > dur) { jumpQueued = false; player.sit = false; player.p.copy(sp).addScaledVector(up, -.5).addScaledVector(f, 1.1); return false; }
+    return true; } };
+}
+function getUp(sec = .55) { let t = 0; player.sit = true; player.vel.set(0, 0, 0); hold = { step(dt) { t += dt; player.vel.set(0, 0, 0); if (t < sec) return true; player.sit = false; player.squash = .8; return false; } }; }
 function startRide(localPts, obj, speed, onEnd, center = null) {
   const pts = localPts.map(p => p.clone().applyMatrix4(obj.matrixWorld)), up = center ? pts[0].clone().sub(center).normalize() : V(0, 1, 0).transformDirection(obj.matrixWorld);
   ride = { path: polyline(pts), s: 0, speed, onEnd, up, center };
@@ -3164,7 +3275,7 @@ $('t-use').addEventListener('touchstart', e => { e.preventDefault(); tryInteract
 $('t-use').addEventListener('click', () => tryInteract());
 
 let nearest = null, useCooldown = 0;
-function tryInteract() { if (mode !== 'play' || ride || !nearest || useCooldown > 0) return; useCooldown = .45; Sound.init(); nearest.done = true; nearest.act(); }
+function tryInteract() { if (mode !== 'play' || ride || hold || !nearest || useCooldown > 0) return; useCooldown = .45; Sound.init(); Sound.duck(3); nearest.done = true; nearest.act(); }
 
 /* ================= fullscreen + sound buttons ================= */
 function toggleFS() {
@@ -3200,6 +3311,7 @@ let currentPlanet = null, collected = 0;
 
 function stepPlayer(dt) {
   if (ride) { stepRide(dt); return; }
+  if (hold) { if (!hold.step(dt)) hold = null; return; }
   const P = player;
   grad(P.p, nrm, P.up);
   P.up.lerp(nrm, 1 - Math.exp(-dt * 12)).normalize();
@@ -3278,10 +3390,16 @@ function placeDreamer(dt, t) {
   m4.makeBasis(xAxis, P.up, P.face); dreamer.quaternion.setFromRotationMatrix(m4); dreamer.position.copy(P.p);
   const speedH = ride ? 0 : Math.hypot(P.vel.dot(P.fwd), P.vel.dot(right)), moving = speedH > .8 && P.grounded;
   P.squash = Math.max(0, P.squash - dt * 4);
+  const ph0 = walkPh;
   walkPh += dt * Math.max(speedH, 2) * 1.5; legAmp += ((moving ? 1 : 0) - legAmp) * Math.min(1, dt * 8);
   const sw = Math.sin(walkPh) * legAmp, air = P.grounded ? 0 : 1;
   limbs.hipL.rotation.x = sw * .7 - air * .5; limbs.hipR.rotation.x = -sw * .7 + air * .3;
   limbs.armL.rotation.x = -sw * .6 - air * 1.2; limbs.armR.rotation.x = sw * .6 - air * 1.2;
+  if (moving && !ride && mode === 'play' && Math.floor(walkPh / Math.PI) !== Math.floor(ph0 / Math.PI)) {
+    const id = currentPlanet && currentPlanet.id; Sound.step(id === 'grid' ? 2400 : id === 'liminal' ? 1500 : id === 'bloom' ? 900 : id === 'cloud' ? 650 : 1900, speedH > 10 ? .045 : .03);
+  }
+  if (P.sit) { limbs.hipL.rotation.x = limbs.hipR.rotation.x = -1.45; limbs.armL.rotation.x = limbs.armR.rotation.x = -2.75; }
+  if (P.gumArm > 0) { P.gumArm -= dt; limbs.armR.rotation.x = -1.25; }
   inner.position.y = Math.abs(Math.cos(walkPh)) * .07 * legAmp + (1 - legAmp) * Math.sin(t * 2.2) * .015;
   inner.rotation.z = sw * .04;
   inner.scale.set(1 + P.squash * .15, 1 - P.squash * .2, 1 + P.squash * .15);
@@ -3324,7 +3442,7 @@ function updateWorldState(dt) {
 
   // nearest interactable
   nearest = null; let nd = 1e9;
-  if (!ride) for (const it of interactables) { const d = P.p.distanceTo(it.pos); if (d < it.radius && d < nd) { nd = d; nearest = it; } }
+  if (!ride && !hold) for (const it of interactables) { const d = P.p.distanceTo(it.pos); if (d < it.radius && d < nd) { nd = d; nearest = it; } }
   const pr = $('prompt');
   if (nearest) { pr.hidden = false; $('prompt-text').textContent = nearest.label; $('prompt-key').textContent = isTouch ? 'tap' : 'E'; } else pr.hidden = true;
   $('t-use').classList.toggle('ready', !!nearest);

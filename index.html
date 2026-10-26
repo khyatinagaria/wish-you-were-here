@@ -114,6 +114,17 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
 .namecard h2{font-family:'Monoton',var(--f-dream);font-weight:400;font-size:clamp(28px,3.6vw,40px);line-height:1.15;margin:0;color:#ffe0f8;text-shadow:0 0 16px rgba(255,61,240,.9)}
 #name-in{width:100%;box-sizing:border-box;font-family:var(--f-pixel);font-size:28px;padding:10px 16px;border-radius:12px;border:1px solid rgba(127,246,255,.5);background:rgba(0,0,0,.35);color:#fff;outline:none;-webkit-user-select:text;user-select:text}
 #name-in:focus{border-color:#ff3df0;box-shadow:0 0 18px rgba(255,61,240,.5)}
+#namer.riddle .namecard{background:linear-gradient(160deg,#3b2560,#1d1340);box-shadow:0 0 0 1px rgba(255,200,240,.45),0 0 46px rgba(255,154,213,.4)}
+#namer.riddle .namecard h2{font-family:var(--f-dream);font-style:italic;font-size:clamp(30px,3.8vw,44px);color:#fff0fb;text-shadow:0 0 18px rgba(255,154,213,.8)}
+#namer.riddle .eyebrow{color:#ffb3e6}
+#namer.riddle #name-in{text-align:center;border-color:rgba(255,200,240,.55)}
+#badges b{color:#e6c4ff;font-weight:400}
+#badge{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%) scale(.5);opacity:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:10px;transition:opacity .5s,transform .7s cubic-bezier(.2,1.7,.4,1)}
+#badge.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#badge .medal{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;font-size:64px;line-height:1;color:#fff7cc;text-shadow:0 0 14px #fff,0 0 30px #ffd6f5;background:radial-gradient(circle at 34% 30%,#fff3ff,#d6b2ff 32%,#6a46c4 68%,#24154f);box-shadow:0 0 0 4px #ffe6a6,0 0 0 9px rgba(255,214,245,.35),0 0 48px rgba(214,178,255,.9);animation:medal 6s linear infinite}
+@keyframes medal{to{filter:hue-rotate(360deg)}}
+#badge b{font-family:var(--f-pixel);font-weight:400;font-size:24px;letter-spacing:.2em;text-transform:uppercase;color:#fff0fb;text-shadow:0 0 12px rgba(255,154,213,.9)}
+#badge i{font-family:var(--f-dream);font-size:22px;color:#ffd6f2}
 @media (max-width:760px){.book{grid-template-columns:1fr}.page.right{border-left:0;border-top:2px dashed rgba(91,67,128,.28)}}
 @media (max-width:700px){#tl{top:calc(60px + env(safe-area-inset-top,0px))}#help{display:none}#where span{font-size:21px}.pill{font-size:18px}#prompt{bottom:calc(36% + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#whisper,#toast,.screen,#flash{transition:none}}
@@ -128,6 +139,7 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
     <div id="where" class="pill"><small>now dreaming</small><span id="where-name">somewhere between</span></div>
     <div id="orbs" class="pill">memories <b id="orb-count">0</b> / 12</div>
     <div id="coins" class="pill" hidden>coins <b id="coin-count">0</b> · gems <b id="gem-count">0</b> / 5</div>
+    <div id="badges" class="pill" hidden>cosmos badges <b id="badge-count">0</b></div>
   </div>
   <div id="tr">
     <button id="btn-map" class="pill">map</button>
@@ -136,6 +148,7 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
   </div>
   <div id="toast"><b id="toast-name"></b><i id="toast-sub"></i></div>
   <div id="whisper"></div>
+  <div id="badge" aria-live="polite"><div class="medal">✦</div><b>cosmos badge</b><i id="badge-sub"></i></div>
   <div id="prompt" class="pill" hidden><kbd id="prompt-key">E</kbd><span id="prompt-text"></span></div>
   <div id="help">WASD walk · mouse look · space jump · shift run · E touch · M map · F fullscreen</div>
 </div>
@@ -185,8 +198,8 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
 
 <div id="namer" class="screen gone" aria-hidden="true">
   <div class="card namecard">
-    <div class="eyebrow">the big screen</div>
-    <h2>Put your name in lights</h2>
+    <div class="eyebrow" id="name-eye">the big screen</div>
+    <h2 id="name-title">Put your name in lights</h2>
     <input id="name-in" maxlength="90" autocomplete="off" spellcheck="false" placeholder="type your name" aria-label="Your name, 1 to 10 words">
     <p class="keys" id="name-hint">1 to 10 words · enter to project · esc to cancel</p>
     <div class="row"><button id="btn-name" class="big">project it</button><button id="btn-name-x" class="big ghost">cancel</button></div>
@@ -452,7 +465,7 @@ const Sound = (() => {
   // background music dips while something is being touched, then drifts back
   function duck(sec) {
     if (!ctx) return; const t = ctx.currentTime; duckEnd = Math.max(duckEnd, t + sec);
-    for (const [g, lo, hi] of [[musicG.gain, .1, 1]]) { g.cancelScheduledValues(t); g.setTargetAtTime(lo, t, .3); g.setTargetAtTime(hi, duckEnd, 1.5); }
+    for (const [g, lo, hi] of [[musicG.gain, .5, 1]]) { g.cancelScheduledValues(t); g.setTargetAtTime(lo, t, .3); g.setTargetAtTime(hi, duckEnd, 1.5); }
   }
   // a soft music-box note (goes through the music bus so it ducks too)
   function bell(f, vol = .04, when = 0, dur = 2.4) {
@@ -514,6 +527,17 @@ function toast(name, sub) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('on'), 3800);
 }
 function flash() { const f = $('flash'); f.style.opacity = 1; setTimeout(() => f.style.opacity = 0, 280); }
+let cosmos = 0, badgeTimer = 0;
+function giveBadge(sub) {
+  cosmos++; $('badges').hidden = false; $('badge-count').textContent = cosmos; $('badge-sub').textContent = sub; $('badge').classList.add('on');
+  clearTimeout(badgeTimer); badgeTimer = setTimeout(() => $('badge').classList.remove('on'), 3600);
+  flash(); arp([659.3, 784, 987.8, 1318.5, 1568], .09, 'sine', .08, 1.2); Sound.tone(2093, 1.6, 'sine', .03, .5);
+}
+// someone talking behind a door: soft little syllable blips
+function voice(n = 10, pitch = 1, when = 0) {
+  let w = when;
+  for (let k = 0; k < n; k++) { const f = (250 + Math.random() * 170) * pitch; Sound.tone(f, .09, 'triangle', .06, w); Sound.tone(f * 2.01, .07, 'sine', .015, w); w += .075 + Math.random() * .03 + (k % 4 === 3 ? .12 : 0); }
+}
 
 /* ================= shared props ================= */
 function makeDoor(col = '#cfe8ff') {
@@ -651,10 +675,20 @@ function makeCottage(wall, roof) {
   const mull = std('#ffffff');
   for (const x of [-.65, .65]) { g.add(mesh(new THREE.PlaneGeometry(.52, .5), winM, x, 1.1, 1.111)); g.add(mesh(new THREE.BoxGeometry(.04, .5, .02), mull, x, 1.1, 1.12), mesh(new THREE.BoxGeometry(.52, .04, .02), mull, x, 1.1, 1.12)); }
   for (const z of [-.5, .5]) { const w = mesh(new THREE.PlaneGeometry(.45, .45), winM, 1.211, 1.1, z); w.rotation.y = Math.PI / 2; g.add(w); }
-  g.add(mesh(new THREE.BoxGeometry(.55, .8, .05), std('#b48cd8'), 0, .4, 1.12));
-  g.add(mesh(new THREE.CircleGeometry(.275, 16, 0, Math.PI), std('#b48cd8'), 0, .8, 1.122));
-  g.add(mesh(new THREE.SphereGeometry(.09, 8, 6), glow('#ffe7b0', 3), .45, 1.05, 1.2));
-  g.userData.win = winM; return g;
+  // the doorway: warm light and a little someone, hidden behind a hinged door
+  const inside = new THREE.Group(), warm = glow('#ffc98a', 1.6), shade = new THREE.MeshBasicMaterial({ color: '#2a1840' });
+  inside.add(mesh(new THREE.PlaneGeometry(.55, .8), warm, 0, .4, 1.104), mesh(new THREE.CircleGeometry(.275, 16, 0, Math.PI), warm, 0, .8, 1.104));
+  inside.add(mesh(new THREE.PlaneGeometry(.3, .42), shade, .03, .21, 1.106), mesh(new THREE.CircleGeometry(.15, 16), shade, .03, .42, 1.106), mesh(new THREE.CircleGeometry(.12, 16), shade, .03, .66, 1.107));
+  const eyes = new THREE.Group(); eyes.position.set(.03, .68, 1.109); inside.add(eyes);
+  for (const x of [-.045, .045]) eyes.add(mesh(new THREE.CircleGeometry(.022, 10), glow('#ffffff', 2), x, 0, 0));
+  inside.visible = false; g.add(inside);
+  const doorM = std('#b48cd8'), door = new THREE.Group(); door.position.set(-.275, 0, 1.12); g.add(door);
+  door.add(mesh(new THREE.BoxGeometry(.55, .8, .05), doorM, .275, .4, 0));
+  const arch = mesh(new THREE.CylinderGeometry(.275, .275, .05, 16, 1, false, Math.PI / 2, Math.PI), doorM, .275, .8, 0); arch.rotation.x = Math.PI / 2; door.add(arch);
+  door.add(mesh(new THREE.SphereGeometry(.04, 8, 6), std('#ffe08a', { metalness: .6, roughness: .3 }), .47, .4, .04));
+  const lamp = glow('#ffe7b0', 3);
+  g.add(mesh(new THREE.SphereGeometry(.09, 8, 6), lamp, .45, 1.05, 1.2));
+  Object.assign(g.userData, { win: winM, lamp, door, inside, eyes, warm }); return g;
 }
 function makeGear(r, n, c) {
   const g = new THREE.Group(), m = std(c, { metalness: .6, roughness: .35, emissive: c, emissiveIntensity: .2 });
@@ -859,17 +893,60 @@ function buildCloud(pl) {
   bulbs.forEach((p, i) => { bulbMesh.setMatrixAt(i, new THREE.Matrix4().makeTranslation(p.x, p.y, p.z)); bulbMesh.setColorAt(i, new THREE.Color(i % 3 ? '#ffd98a' : '#ffb3e6').multiplyScalar(3)); });
   pl.group.add(bulbMesh);
 
-  // ---- cottage row ----
-  const cottageLines = ['a kettle is whistling. nobody comes to turn it off.', 'your drawings are still on the fridge.', 'the tv shows the same cartoon you fell asleep to.'];
+  // ---- cottage row: knock, and someone inside asks you a riddle ----
+  const riddles = [['What has keys, but cannot open locks?', 'piano'], ['What has hands, but cannot clap?', 'clock'], ['What gets wetter the more it dries?', 'towel'],
+    ['What has to be broken before you can use it?', 'egg'], ['What is tall when it is young, and short when it is old?', 'candle'], ['What has an eye, but cannot see?', 'needle'], ['What has lots of teeth, but cannot bite?', 'comb']];
+  const thanks = ['a kettle is whistling inside. they wave at you from the doorway.', 'your drawings are still on their fridge. they kept every one.', 'the tv inside plays the cartoon you fell asleep to. they saved you a seat.'];
+  let nextRiddle = 0; pl.badges = 0;
   [[41, 145, '#ffd6ec', '#b48ce0'], [19, 110, '#e3d4ff', '#ff9ad5'], [43, 106, '#d9f4e8', '#c49ae8']].forEach(([la, lo, w, r], i) => {
-    const c = placeFacing(pl, makeCottage(w, r), at(la, lo, .15), 0, ll(30, 125));
+    const c = placeFacing(pl, makeCottage(w, r), at(la, lo, .15), 0, ll(30, 125)), u = c.userData;
     addCollider(c, V(), 1.7, 3.2);
-    let dim = 0;
-    updaters.push((dt, t) => { const f = dim > 0 ? (dim -= dt, Math.random() > .5 ? .3 : 2) : 1.8 + Math.sin(t * 1.3 + i) * .25; c.userData.win.color.set('#ffd98a').multiplyScalar(f); });
-    addInteract(c, 'Peek through the window', () => { dim = .8; whisper(cottageLines[i]); Sound.tone(880, 1.2, 'sine', .05); Sound.tone(1320, 1.2, 'sine', .03, .2); }, 3).note = 'cottage';
+    let state = 'shut', flick = 0, dark = 0, open = 0, openTo = 0, solved = false, riddle = null;
+    const shut = (sec = 0) => setTimeout(() => { openTo = 0; }, sec * 1000);
+    const it = addInteract(c, 'Knock on the door', () => {
+      if (state !== 'shut') { whisper('the house is dark. nobody answers right now.', 2400); return; }
+      if (solved) { openTo = 1; shut(3); voice(7, 1.3, .3); whisper(thanks[i], 4000); return; }
+      state = 'knock'; riddle = riddles[nextRiddle++ % riddles.length]; Sound.duck(6);
+      // step up to the door if you're in front of the house, then knock three times
+      const P = player, spot = c.localToWorld(V(0, 0, 2.15)), door = c.localToWorld(V(0, .5, 1.12)), from = P.p.clone();
+      const glide = c.worldToLocal(P.p.clone()).z > .4 ? .45 : 0;
+      for (let k = 0; k < 3; k++) { Sound.noise(.1, 240, 1.2, .5, glide + .15 + k * .32, 'lowpass'); Sound.tone(140 - k * 6, .14, 'sine', .22, glide + .15 + k * .32); }
+      let t = 0, opened = false, spoke = false;
+      hold = { step(dt) {
+        t += dt; P.vel.set(0, 0, 0);
+        if (t < glide) { P.p.lerpVectors(from, spot, t / glide); const n = grad(P.p, nrm, P.up); P.p.addScaledVector(n, -sdfV(P.p)); }
+        P.face.copy(door).sub(P.p).projectOnPlane(P.up).normalize(); P.fwd.lerp(P.face, 1 - Math.exp(-dt * 6)).normalize();
+        if (t >= glide && !P.knock && t < glide + .2) P.knock = 1.15;
+        if (!opened && t > glide + 1.5) { opened = true; openTo = 1; Sound.sweep(420, 240, .8, 'triangle', .035); Sound.noise(.7, 950, 4, .035); }
+        if (!spoke && t > glide + 2.1) { spoke = true; voice(16); whisper('someone peeks out: "a riddle for you, little dreamer..."', 3000); }
+        if (t < glide + 3.7) return true;
+        const ok = openNamer(ans => {
+          const a = ans.toLowerCase().replace(/[^a-z]/g, '');
+          if (a === riddle[1] || a === riddle[1] + 's') {
+            solved = true; state = 'shut'; pl.badges++; it.label = 'Visit your friend';
+            voice(9, 1.35); shut(3.2); giveBadge(`"${riddle[1]}" was right!`); whisper('"yes! that\'s it!" they sound so happy.', 3200);
+          } else {
+            state = 'dark'; openTo = 0; voice(5, .7); Sound.noise(.3, 170, 1, .55, .2, 'lowpass'); Sound.sweep(300, 70, 1.6, 'sawtooth', .025);
+            flick = 1.4; it.label = 'The house is dark'; whisper('"no..." the door shuts. the lights flicker out.', 3200);
+          }
+        }, { riddle: true, eye: 'a voice behind the door', title: riddle[0], ph: 'one word', hint: 'one word answer · enter to answer · esc to walk away', go: 'answer', max: 1,
+          cancel: () => { state = 'shut'; openTo = 0; voice(3, .85); whisper('"come back when you know." the door clicks shut.', 2600); } });
+        if (!ok) { state = 'shut'; openTo = 0; }
+        return false; } };
+    }, 3);
+    it.note = 'cottage';
+    updaters.push((dt, t) => {
+      open += (openTo - open) * Math.min(1, dt * (openTo ? 3 : 7)); u.door.rotation.y = -1.75 * open; u.inside.visible = open > .03;
+      u.eyes.scale.y = Math.sin(t * 1.3 + i * 2) > .985 ? .15 : 1;
+      let f;
+      if (flick > 0) { flick -= dt; f = Math.random() > .55 ? .12 : 2.3; if (flick <= 0) dark = 5; }
+      else if (dark > 0) { dark -= dt; f = .03; if (dark <= 0) { state = 'shut'; it.label = 'Knock on the door'; if (player.p.distanceTo(c.position) < 9) whisper('the lights come back on. maybe knock again?', 2600); } }
+      else f = (solved ? 2.3 : 1.8) + Math.sin(t * 1.3 + i) * .25;
+      u.win.color.set(solved ? '#ffc4ea' : '#ffd98a').multiplyScalar(f); u.lamp.color.set('#ffe7b0').multiplyScalar(f * 1.6);
+    });
   });
   mark('Cottage Row', ll(32, 122), 'house');
-  note('cottage', 'Peek into a cottage');
+  note('cottage', 'Answer a riddle at each cottage');
 
   // ---- teddy bear + balloons ----
   const bear = new THREE.Group(); let bearHead; {
@@ -1065,7 +1142,7 @@ function buildCloud(pl) {
 
   // ---- floaty bubbles (walk into them) ----
   const bubbleMat = holoMat('#ffffff', .06, 1.15);
-  pl.bubbles = 0; pl.counters = { bubbles: [() => pl.bubbles, 10] };
+  pl.bubbles = 0; pl.counters = { bubbles: [() => pl.bubbles, 10], cottage: [() => pl.badges, 3] };
   const bubbleList = [];
   for (let i = 0; i < 26; i++) {
     const b = mesh(new THREE.SphereGeometry(R(.3, .55), 20, 14), bubbleMat); pl.group.add(b);
@@ -1094,12 +1171,14 @@ function buildCloud(pl) {
     const bass = ['F3', 'C4', 'D4', 'C4', 'F3', 'Bb3', 'F3', 'C4', 'F3', 'Bb3', 'F3', 'C4', 'Bb3', 'C4', 'C4', 'F3'];
     let beat = -1, acc = 0;
     updaters.push((dt, t, rdt) => {
-      if (currentPlanet !== pl || (mode !== 'play' && mode !== 'map')) { beat = -1; acc = 0; return; }
+      if (currentPlanet !== pl || (mode !== 'play' && mode !== 'map' && mode !== 'type')) { beat = -1; acc = 0; return; }
       acc -= rdt; if (acc > 0) return; acc += .46; beat = (beat + 1) % (tune.length * 3 + 6);
       const bar = Math.floor(beat / 3), b = beat % 3; if (bar >= tune.length) return;
-      const n = tune[bar][b]; if (n) Sound.bell(N[n], .032, 0, 2.6);
-      if (b === 0) Sound.bell(N[bass[bar]], .022, 0, 3.4);
-      if (b === 2 && bar % 4 === 3) Sound.bell(N[bass[bar]] * 2, .014, .1, 2);
+      const n = tune[bar][b]; if (n) Sound.bell(N[n], .052, 0, 2.8);
+      if (b === 0) Sound.bell(N[bass[bar]], .036, 0, 3.6);
+      if (b === 2 && bar % 4 === 3) Sound.bell(N[bass[bar]] * 2, .022, .1, 2.2);
+      // a few faraway twinkles, like stars in a mobile over a crib
+      if (b === 1 && bar % 4 === 1) for (let k = 0; k < 3; k++) Sound.bell([1046.5, 1174.7, 1396.9, 1568, 1760][Math.floor(Math.random() * 5)], .014, .12 + k * .16, 1.8);
     }); }
   scatter(pl, new THREE.IcosahedronGeometry(.22, 1).translate(0, .12, 0), std('#ffffff', { roughness: 1, emissive: '#b48ce0', emissiveIntensity: .15 }), 700, { colors: ['#d9bdf8', '#c6a6f0', '#f5c4e4', '#c9efe0'], scale: [.7, 1.5], filter: offRoad });
   const puffMat = std('#fff3fb', { emissive: '#ffc6ea', emissiveIntensity: .4, roughness: 1 });
@@ -3122,7 +3201,7 @@ const limbs = {}; {
 const shadow = new THREE.Mesh(new THREE.CircleGeometry(.55, 24), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: .32, depthWrite: false }));
 scene.add(shadow);
 
-const player = { sit: false, gumArm: 0, p: cloud.center.clone().addScaledVector(Y, cloud.R), vel: V(), up: Y.clone(), fwd: V(1, 0, 0), face: V(1, 0, 0), grounded: true, airTime: 0, squash: 0 };
+const player = { sit: false, gumArm: 0, knock: 0, p: cloud.center.clone().addScaledVector(Y, cloud.R), vel: V(), up: Y.clone(), fwd: V(1, 0, 0), face: V(1, 0, 0), grounded: true, airTime: 0, squash: 0 };
 const camUp = Y.clone(), camPos = V(130, 60, 0);
 let pitch = .38, camDist = 8.5, yawIn = 0, pitchIn = 0;
 let mode = 'attract', playTime = 0;
@@ -3394,6 +3473,7 @@ function placeDreamer(dt, t) {
   }
   if (P.sit) { limbs.hipL.rotation.x = limbs.hipR.rotation.x = -1.45; limbs.armL.rotation.x = limbs.armR.rotation.x = -2.75; }
   if (P.gumArm > 0) { P.gumArm -= dt; limbs.armR.rotation.x = -1.25; }
+  if (P.knock > 0) { P.knock = Math.max(0, P.knock - dt); const tap = Math.pow(Math.abs(Math.cos((1.15 - P.knock - .15) / .32 * Math.PI)), 6); limbs.armR.rotation.x = -1.15 - .42 * tap; }
   inner.position.y = Math.abs(Math.cos(walkPh)) * .07 * legAmp + (1 - legAmp) * Math.sin(t * 2.2) * .015;
   inner.rotation.z = sw * .04;
   inner.scale.set(1 + P.squash * .15, 1 - P.squash * .2, 1 + P.squash * .15);
@@ -3488,22 +3568,27 @@ function closeMap() {
 $('btn-map').addEventListener('click', () => mode === 'map' ? closeMap() : openMap());
 $('btn-map-close').addEventListener('click', closeMap);
 // the big screen's name prompt
-let namerCb = null;
-function openNamer(cb) {
-  if (mode !== 'play') return;
-  namerCb = cb; mode = 'type'; keys.clear(); stick.dx = stick.dy = 0; if (locked()) document.exitPointerLock();
-  $('name-in').value = ''; $('name-hint').textContent = '1 to 10 words · enter to project · esc to cancel';
+const NAMER = { eye: 'the big screen', title: 'Put your name in lights', ph: 'type your name', hint: '1 to 10 words · enter to project · esc to cancel', go: 'project it', max: 10, riddle: false, cancel: null };
+let namerCb = null, namerO = NAMER;
+function openNamer(cb, o = {}) {
+  if (mode !== 'play') return false;
+  namerO = { ...NAMER, ...o }; namerCb = cb; mode = 'type'; keys.clear(); stick.dx = stick.dy = 0; if (locked()) document.exitPointerLock();
+  $('name-eye').textContent = namerO.eye; $('name-title').textContent = namerO.title; $('btn-name').textContent = namerO.go;
+  $('name-in').placeholder = namerO.ph; $('name-in').setAttribute('aria-label', namerO.ph); $('name-in').maxLength = namerO.max === 1 ? 24 : 90;
+  $('name-in').value = ''; $('name-hint').textContent = namerO.hint; $('namer').classList.toggle('riddle', namerO.riddle);
   $('namer').classList.remove('gone'); $('namer').setAttribute('aria-hidden', 'false'); setTimeout(() => $('name-in').focus(), 60);
+  return true;
 }
+function cancelNamer() { if (mode !== 'type') return; const c = namerO.cancel; closeNamer(); c && c(); }
 function closeNamer() { if (mode !== 'type') return; mode = 'play'; $('namer').classList.add('gone'); $('namer').setAttribute('aria-hidden', 'true'); cv.focus(); }
 function submitName() {
   const words = $('name-in').value.trim().split(/\s+/).filter(Boolean);
-  if (!words.length || words.length > 10) { $('name-hint').textContent = words.length ? 'that is more than 10 words. try a shorter one.' : 'type at least one word first.'; return; }
+  if (!words.length || words.length > namerO.max) { $('name-hint').textContent = !words.length ? 'type at least one word first.' : namerO.max === 1 ? 'one word only, please.' : 'that is more than 10 words. try a shorter one.'; return; }
   const cb = namerCb; closeNamer(); cb && cb(words.join(' '));
 }
 $('btn-name').addEventListener('click', submitName);
-$('btn-name-x').addEventListener('click', closeNamer);
-$('name-in').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); submitName(); } else if (e.key === 'Escape') closeNamer(); });
+$('btn-name-x').addEventListener('click', cancelNamer);
+$('name-in').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); submitName(); } else if (e.key === 'Escape') cancelNamer(); });
 function renderNotes(pl) {
   const ul = $('notes'); ul.textContent = '';
   for (const n of pl.map.notes) {

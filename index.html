@@ -477,8 +477,18 @@ const Sound = (() => {
     }
   }
   // a very faint, dry footstep
-  function step(freq, vol = .035) {
+  // a footstep: soft surfaces get a gentle cushioned puff, hard ones a quiet tap
+  function step(freq, vol = .035, soft = false) {
     if (!ctx || !on) return; const t = ctx.currentTime;
+    if (soft) {
+      const s = ctx.createBufferSource(); s.buffer = noiseBuf; const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = .5;
+      f.frequency.setValueAtTime(freq * (.9 + Math.random() * .2), t); f.frequency.exponentialRampToValueAtTime(freq * .4, t + .16);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + .2);
+      s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 1.5, .22);
+      const o = ctx.createOscillator(), og = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(90 + Math.random() * 12, t); o.frequency.exponentialRampToValueAtTime(60, t + .12);
+      og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(vol * .35, t + .01); og.gain.exponentialRampToValueAtTime(.0001, t + .15); o.connect(og); og.connect(master); o.start(t); o.stop(t + .2);
+      return;
+    }
     const s = ctx.createBufferSource(); s.buffer = noiseBuf; const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq * (.85 + Math.random() * .3);
     const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .09);
     s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 1.5, .1);
@@ -3499,7 +3509,9 @@ function placeDreamer(dt, t) {
   limbs.hipL.rotation.x = sw * .7 - air * .5; limbs.hipR.rotation.x = -sw * .7 + air * .3;
   limbs.armL.rotation.x = -sw * .6 - air * 1.2; limbs.armR.rotation.x = sw * .6 - air * 1.2;
   if (moving && !ride && mode === 'play' && Math.floor(walkPh / Math.PI) !== Math.floor(ph0 / Math.PI)) {
-    const id = currentPlanet && currentPlanet.id; Sound.step(id === 'grid' ? 2400 : id === 'liminal' ? 1500 : id === 'bloom' ? 900 : id === 'cloud' ? 650 : 1900, speedH > 10 ? .045 : .03);
+    const id = currentPlanet && currentPlanet.id, run = speedH > 10;
+    if (id === 'cloud' || id === 'bloom') Sound.step(id === 'cloud' ? 680 : 820, run ? .085 : .07, true);
+    else Sound.step(id === 'grid' ? 2400 : id === 'liminal' ? 1500 : 1900, run ? .11 : .09);
   }
   if (P.sit) { limbs.hipL.rotation.x = limbs.hipR.rotation.x = -1.45; limbs.armL.rotation.x = limbs.armR.rotation.x = -2.75; }
   if (P.gumArm > 0) { P.gumArm -= dt; limbs.armR.rotation.x = -1.25; }

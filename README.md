@@ -5,3 +5,5 @@ A dreamcore browser game: four little planets joined by walkable bridges. Wander
 Play: https://khyatinagaria.github.io/wish-you-were-here/
 
 Controls: WASD to walk, mouse to look, space to jump, shift to run, E to touch things, M for the road map, F for fullscreen.
+
+Music: Neon Grid City plays "Home" by Resonance (slowed + reverb edit). All rights belong to the artist.

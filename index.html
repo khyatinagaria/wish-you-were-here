@@ -577,6 +577,16 @@ function giveBadge(sub) {
   clearTimeout(badgeTimer); badgeTimer = setTimeout(() => $('badge').classList.remove('on'), 3600);
   flash(); arp([659.3, 784, 987.8, 1318.5, 1568], .09, 'sine', .08, 1.2); Sound.tone(2093, 1.6, 'sine', .03, .5);
 }
+// each planet can have a recorded soundtrack: it plays while you're there, and its credit shows under the planet name
+const SONGS = [];
+function planetSong(pl, url, vol, credit) {
+  if (!SONGS.length) updaters.push(() => {
+    const live = mode === 'play' || mode === 'map' || mode === 'type'; let cur = null;
+    for (const sg of SONGS) { const here = live && currentPlanet === sg.pl; Sound.track(sg.url, here, sg.vol); if (here) cur = sg; }
+    const el = $('song'); el.hidden = !(cur && Sound.on); if (cur && el.textContent !== cur.credit) el.textContent = cur.credit;
+  });
+  SONGS.push({ pl, url, vol, credit });
+}
 // someone talking behind a door: soft little syllable blips
 function voice(n = 10, pitch = 1, when = 0) {
   let w = when;
@@ -1317,7 +1327,7 @@ function buildGrid(pl) {
   const note = (key, label) => pl.map.notes.push({ key, label });
   pl.shards = 0; pl.bumps = 0; pl.gravity = 0; pl.arcade = new Set(); pl.carDir = 1; let carDirT = 1;
   // soundtrack: "Home" by Resonance (slowed + reverb), chosen by Khyati
-  updaters.push(() => { const here = currentPlanet === pl && (mode === 'play' || mode === 'map' || mode === 'type'); Sound.track('audio/neon-home.mp3', here); if (here) $('song').textContent = '♪ Home · Resonance (slowed + reverb)'; $('song').hidden = !((here || currentPlanet && currentPlanet.id === 'liminal' && (mode === 'play' || mode === 'map' || mode === 'type')) && Sound.on); });
+  planetSong(pl, 'audio/neon-home.mp3', .16, '♪ Home · Resonance (slowed + reverb)');
   pl.counters = { shard: [() => pl.shards, 8], car: [() => pl.bumps, 1], gravity: [() => pl.gravity, 1], arcade: [() => pl.arcade.size, 3] };
   pl.doorAnywhere = true;
   const TT = { value: 0 }; updaters.push((dt, t) => TT.value = t);
@@ -2185,7 +2195,7 @@ function buildPixel(pl) {
   const note = (key, label) => pl.map.notes.push({ key, label });
   pl.coins = 0; pl.gems = 0; pl.crates = 0; pl.bounces = 0; pl.sky = 0; pl.flags = new Set(); pl.key = false; pl.bossOpen = false;
   // soundtrack: "Agitations tropicales" by L'Impératrice (karaoke version), chosen by Khyati
-  updaters.push(() => { const here = currentPlanet === pl && (mode === 'play' || mode === 'map' || mode === 'type'); Sound.track('audio/world-1-1.mp3', here, .24); if (here) { $('song').textContent = "♪ Agitations tropicales · L'Impératrice"; $('song').hidden = !Sound.on; } });
+  planetSong(pl, 'audio/world-1-1.mp3', .24, "♪ Agitations tropicales · L'Impératrice");
   pl.counters = { bounce: [() => pl.bounces, 1], coins: [() => pl.coins, 30], gems: [() => pl.gems, 5], crates: [() => pl.crates, 3], flags: [() => pl.flags.size, 3], sky: [() => pl.sky, 1], boss: [() => pl.bossOpen ? 1 : 0, 1] };
   pl.map.inventory = () => "in your Explorer's Pack: Map-Book · Scan-Glasses · Pix-Net" + (pl.key ? ' · Boss Key' : '') + (pl.gems ? ` · Gem jar (${pl.gems})` : '');
   note('bounce', 'Bounce on a bouncy pad (hold jump!)');
@@ -2903,6 +2913,8 @@ function buildBloom(pl) {
   const mark = (name, d, kind) => pl.map.landmarks.push({ name, d, kind });
   const note = (key, label) => pl.map.notes.push({ key, label });
   pl.pollen = 0; pl.tunnel = 0; pl.storms = 0;
+  // soundtrack: "Dreamcore", chosen by Khyati
+  planetSong(pl, 'audio/glowshroom.mp3', .24, '♪ Dreamcore');
   pl.counters = { pollen: [() => pl.pollen, 5], tunnel: [() => pl.tunnel, 1], storm: [() => pl.storms, 1] };
 
   // ---- the glowing forest track ----

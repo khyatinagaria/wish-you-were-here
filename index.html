@@ -3563,11 +3563,150 @@ function buildBloom(pl) {
     updaters.push((dt, t) => { squish += dt; lit = Math.max(0, lit - dt * .5); const k = squish < .6 ? Math.sin(squish / .6 * Math.PI) * .25 : 0; cap.scale.set(1 + k, .62 - k * .8, 1 + k); cap.material.emissiveIntensity = 1 + Math.sin(t * 1.3 + i) * .25 + k * 3 + lit * 2.5; });
     const capW = pl.center.clone().addScaledVector(d, pl.R + 2.4 * s);
     const spores = () => { for (let k = 0; k < 70; k++) parts.emit(capW.clone().add(rdir().multiplyScalar(R(0, 1.2 * s))), d.clone().multiplyScalar(R(.5, 2.5)).add(rdir().multiplyScalar(1.2)), choice([c, '#ffffff', '#fff6b0']), R(2.5, 5), R(.4, 1)); };
-    if (i === 0) addInteract(m, 'Bounce on the giant mushroom', () => { squish = 0; lit = 1; spores(); launch(26); Sound.sweep(160, 720, .35, 'sine', .25); whisper(choice(['boing.', 'higher...', 'the mushroom sighs happily']), 2000); }, 2.2 * s + 1).note = 'bounce';
-    else addInteract(m, 'Touch the glowing mushroom', () => { squish = 0; lit = 1; spores(); arp([523.3, 784, 1046.5], .08, 'sine', .08, 1.2); whisper(choice(['they glow when you touch them!', 'a puff of glowing spores', 'it tickles']), 2200); }, 2.2 * s + .8).note = 'mushroom';
+    // the caps are trampolines: land on one and it boings you back up (hold SPACE to go higher), hop cap to cap
+    const capPf = { pos: pl.center.clone().addScaledVector(d, pl.R + 3.15 * s), n: d.clone(), r: 1.05 * s, on: true }; platforms.push(capPf);
+    let wasOn = false;
+    updaters.push(() => {
+      const on = player.onPlat === capPf;
+      if (on && !wasOn && !hold && !ride) { squish = 0; lit = 1; spores(); launch(keys.has('Space') ? 19 : 14); Sound.sweep(160, 720, .35, 'sine', .25); Sound.tone(R(500, 700), .3, 'triangle', .06); pl.boings = (pl.boings || 0) + 1; }
+      wasOn = on;
+    });
+    // E springs you up from the stem onto the cap
+    const hopUp = () => { const P = player, h = 3.15 * s + .7, v = Math.sqrt(2 * G * h), T = v / G + .25;
+      const to = capW.clone().sub(P.p); to.addScaledVector(P.up, -to.dot(P.up)); const dist = to.length();
+      launch(v, dist > .05 ? to : null, dist * 3 / (1 - Math.exp(-3 * T))); squish = 0; lit = 1; spores(); Sound.sweep(160, 720, .35, 'sine', .25); };
+    if (i === 0) addInteract(m, 'Bounce on the giant mushroom', () => { hopUp(); whisper(choice(['boing. land on the cap and keep bouncing!', 'higher... hold SPACE when you land!', 'the mushroom sighs happily']), 2400); }, 2.2 * s + 1).note = 'bounce';
+    else addInteract(m, 'Hop onto the glowing mushroom', () => { hopUp(); arp([523.3, 784, 1046.5], .08, 'sine', .08, 1.2); whisper(choice(['they glow when you bounce on them!', 'boing! hop to the next one', 'it tickles']), 2200); }, 2.2 * s + .8).note = 'mushroom';
   });
   mark('Glowshroom Grove', ll(28, 30), 'mushroom');
-  note('mushroom', 'Touch a glowing mushroom'); note('bounce', 'Bounce on the giant mushroom');
+  note('mushroom', 'Bounce on a glowing mushroom'); note('bounce', 'Bounce on the giant mushroom');
+
+  // ---- the Magic Veggie Stand: ring the bell, a fairy brings a shopping list, you pull the veggies from the farm beside it ----
+  const VEG = [
+    { k: 'potato', many: 'potatoes', icon: '🥔' }, { k: 'carrot', many: 'carrots', icon: '🥕' }, { k: 'mushroom', many: 'mushrooms', icon: '🍄' },
+    { k: 'corn', many: 'corn', icon: '🌽' }, { k: 'tomato', many: 'tomatoes', icon: '🍅' }];
+  const LISTS = [[2, 1, 3, 4, 2], [3, 2, 1, 4, 3], [4, 3, 2, 2, 1]];   // Khyati's three shopping lists, dealt at random
+  const leafM = std('#4fd16a', { emissive: '#1f8a3a', emissiveIntensity: .45, roughness: .7 });
+  const vegM = {
+    potato: std('#c99a5b', { emissive: '#7a4f1c', emissiveIntensity: .35, roughness: .9 }), carrot: std('#ff8a2a', { emissive: '#ff6a00', emissiveIntensity: .45 }),
+    mushroom: std('#c9a6ff', { emissive: '#b48cff', emissiveIntensity: 1.1, roughness: .4 }), stem: std('#f2ead8', { emissive: '#7affd8', emissiveIntensity: .25 }),
+    corn: std('#ffd84a', { emissive: '#ffb800', emissiveIntensity: .5 }), tomato: std('#ff3f4f', { emissive: '#ff1030', emissiveIntensity: .45, roughness: .35 }), stake: std('#8a6238', { roughness: .9 }) };
+  function veggie(k) {
+    const g = new THREE.Group();
+    if (k === 'potato') { for (const [x, z] of [[-.12, 0], [.12, .05], [0, -.12]]) g.add(mesh(new THREE.SphereGeometry(.17, 8, 6), leafM, x, .28, z)); const t = mesh(new THREE.SphereGeometry(.2, 10, 8), vegM.potato, 0, .07, 0); t.scale.set(1.25, .8, 1); g.add(t); }
+    if (k === 'carrot') { g.add(mesh(new THREE.ConeGeometry(.12, .5, 10), vegM.carrot, 0, -.02, 0).rotateX(Math.PI)); for (let a = 0; a < 3; a++) g.add(mesh(new THREE.ConeGeometry(.05, .45, 5), leafM, Math.cos(a * 2.1) * .06, .42, Math.sin(a * 2.1) * .06).rotateZ((a - 1) * .35)); }
+    if (k === 'mushroom') { g.add(mesh(new THREE.CylinderGeometry(.05, .07, .3, 8), vegM.stem, 0, .15, 0)); const c = mesh(new THREE.SphereGeometry(.19, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), vegM.mushroom, 0, .28, 0); c.scale.y = .7; g.add(c); g.add(mesh(new THREE.SphereGeometry(.035, 6, 4), glow('#ffffff', 2.4), .08, .38, .05)); }
+    if (k === 'corn') { g.add(mesh(new THREE.CylinderGeometry(.04, .05, 1.2, 6), leafM, 0, .6, 0)); for (const sd of [-1, 1]) g.add(mesh(new THREE.BoxGeometry(.5, .03, .1), leafM, sd * .22, .55 + sd * .1, 0).rotateZ(sd * .5)); g.add(mesh(new THREE.CylinderGeometry(.08, .065, .36, 8), vegM.corn, .1, .82, 0).rotateZ(-.25)); g.add(mesh(new THREE.ConeGeometry(.06, .2, 6), leafM, .14, .66, 0).rotateZ(Math.PI - .25)); }
+    if (k === 'tomato') { g.add(mesh(new THREE.CylinderGeometry(.025, .025, .9, 5), vegM.stake, 0, .45, 0)); for (const [x, y] of [[-.1, .45], [.12, .62], [-.05, .78]]) g.add(mesh(new THREE.SphereGeometry(.15, 8, 6), leafM, x * 1.3, y, .04)); for (const [x, y] of [[.13, .4], [-.12, .58], [.06, .74]]) g.add(mesh(new THREE.SphereGeometry(.1, 10, 8), vegM.tomato, x, y, .12)); }
+    return g;
+  }
+  const standD = at(-6, -97, .1), farmD = at(-6, -76, .17); reserve(pl, farmD, .27, true); reserve(pl, standD, .1, true);
+  mark('Magic Veggie Stand', standD, null); note('fairy', "Fill the fairy's shopping list");
+  pl.counters.fairy = [() => pl.fairy || 0, 1];
+  // the stall
+  const stand = new THREE.Group(), wood = std('#a8743e', { roughness: .85 }), dark = std('#6e4622', { roughness: .9 });
+  stand.add(mesh(new THREE.BoxGeometry(2.6, .95, 1), wood, 0, .48, 0), mesh(new THREE.BoxGeometry(2.8, .1, 1.15), dark, 0, .98, .05));
+  for (const x of [-1.25, 1.25]) for (const z of [-.42, .42]) stand.add(mesh(new THREE.BoxGeometry(.12, 2.3, .12), dark, x, 1.15, z));
+  const stripeTex = canvasTex(64, 8, (g, w) => { for (let x = 0; x < 8; x++) { g.fillStyle = x % 2 ? '#fff4fb' : '#ff9ad5'; g.fillRect(x * 8, 0, 8, 8); } });
+  const awning = mesh(new THREE.BoxGeometry(3, .08, 1.5), std('#ffffff', { map: stripeTex, emissive: '#ffffff', emissiveMap: stripeTex, emissiveIntensity: .35 }), 0, 2.32, .25); awning.rotation.x = .28; stand.add(awning);
+  for (let k = 0; k < 9; k++) stand.add(mesh(new THREE.ConeGeometry(.17, .22, 4), std(k % 2 ? '#fff4fb' : '#ff9ad5', { emissive: '#ff9ad5', emissiveIntensity: .2 }), -1.33 + k * .333, 2.0, 1.02).rotateX(Math.PI));
+  const signTex = canvasTex(256, 64, (g, w, h) => { g.fillStyle = '#3a2350'; g.fillRect(0, 0, w, h); g.strokeStyle = '#ffe58a'; g.lineWidth = 4; g.strokeRect(4, 4, w - 8, h - 8);
+    g.font = 'bold 30px "Courier New", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff2a8'; g.fillText('✿ MAGIC VEGGIES ✿', w / 2, h / 2 + 2); });
+  stand.add(mesh(new THREE.PlaneGeometry(2.3, .58), std('#ffffff', { map: signTex, emissive: '#ffffff', emissiveMap: signTex, emissiveIntensity: .8 }), 0, 2.78, .55));
+  stand.add(mesh(new THREE.BoxGeometry(2.4, .64, .08), dark, 0, 2.78, .5));
+  VEG.forEach((v, i) => { const crate = mesh(new THREE.BoxGeometry(.42, .2, .42), dark, -1 + i * .5, 1.13, .1); stand.add(crate); const show = veggie(v.k); show.scale.setScalar(.5); show.position.set(-1 + i * .5, 1.2, .1); stand.add(show); });
+  const bell = new THREE.Group(); bell.position.set(1.05, 1.03, .38); stand.add(bell);
+  bell.add(mesh(new THREE.CylinderGeometry(.03, .03, .3, 6), dark, 0, .15, 0), mesh(new THREE.CylinderGeometry(.06, .17, .2, 12), std('#ffd23d', { metalness: .7, roughness: .25, emissive: '#c08a00', emissiveIntensity: .4 }), 0, .38, 0));
+  placeFacing(pl, stand, standD, 0, ll(40, -97));   // the stall faces the meadow, with the farm just beside it addCollider(stand, V(-.7, 0, 0), .75, 2.6); addCollider(stand, V(.7, 0, 0), .75, 2.6);
+  // the farm: five rows, one veggie each
+  const farm = new THREE.Group(); placeFacing(pl, farm, farmD, 0, standD); pl.group.remove(farm);
+  const soilM = std('#5a3a22', { roughness: 1, emissive: '#2a1608', emissiveIntensity: .25 }), plants = [];
+  const onFarm = (x, z) => farmD.clone().multiplyScalar(pl.R).add(V(x, 0, z).applyQuaternion(farm.quaternion)).normalize();
+  const putFarm = (obj, x, z, lift = 0) => { const dd = onFarm(x, z); obj.position.copy(dd).multiplyScalar(pl.R + lift); obj.quaternion.setFromUnitVectors(farmD, dd).multiply(farm.quaternion); pl.group.add(obj); return dd; };
+  const signM = k => { const t = canvasTex(128, 40, (g, w, h) => { g.fillStyle = '#e9d3a8'; g.fillRect(0, 0, w, h); g.font = 'bold 24px "Courier New", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#5a3a22'; g.fillText(k, w / 2, h / 2 + 1); }); return std('#ffffff', { map: t, emissive: '#ffffff', emissiveMap: t, emissiveIntensity: .35 }); };
+  VEG.forEach((v, row) => {
+    const z = (row - 2) * 1.35;
+    const sg = new THREE.Group(); sg.add(mesh(new THREE.BoxGeometry(.06, .7, .06), dark, 0, .35, 0), mesh(new THREE.PlaneGeometry(.9, .28), signM(v.many), 0, .66, .04)); putFarm(sg, -3.25, z);
+    for (let j = 0; j < 5; j++) {
+      const x = (j - 2) * 1.05, mound = mesh(new THREE.BoxGeometry(.95, .16, .75), soilM, 0, .05, 0), mg = new THREE.Group(); mg.add(mound); putFarm(mg, x, z);
+      const g = veggie(v.k), dd = putFarm(g, x, z, .08), base = g.position.clone();
+      const p = { v, g, base, d: dd, grow: 1, pull: -1, regrow: 0 };
+      p.it = addInteract(g, `Pull up the ${v.k}`, () => harvest(p), .95, .35); plants.push(p);
+    }
+  });
+  for (let k = 0; k < 22; k++) { const a = k / 22 * Math.PI * 2, x = Math.cos(a) * 4.1, z = Math.sin(a) * 4.1; if (Math.abs(x) < .7 && z > 0) continue;   // a gap in the fence on the stall side
+    const post = new THREE.Group(); post.add(mesh(new THREE.BoxGeometry(.1, .55, .1), wood, 0, .27, 0), mesh(new THREE.BoxGeometry(.12, .06, 1.15), wood, 0, .42, 0)); putFarm(post, x, z); post.rotateY(-a); }
+  // the fairy
+  const fairy = new THREE.Group(), fBody = new THREE.Group(); fairy.add(fBody); fairy.visible = false; pl.group.add(fairy);
+  fBody.add(mesh(new THREE.ConeGeometry(.17, .38, 10), std('#f7b6ff', { emissive: '#ff8ce6', emissiveIntensity: .7 }), 0, .19, 0), mesh(new THREE.SphereGeometry(.12, 12, 10), std('#ffe3cf', { emissive: '#ffb08a', emissiveIntensity: .3 }), 0, .47, 0));
+  const hair = mesh(new THREE.SphereGeometry(.135, 12, 8, 0, Math.PI * 2, 0, Math.PI * .6), std('#8affe0', { emissive: '#4ff5c8', emissiveIntensity: .8 }), 0, .5, -.01); fBody.add(hair);
+  fBody.add(mesh(new THREE.SphereGeometry(.4, 12, 10), new THREE.MeshBasicMaterial({ color: '#fff6c0', transparent: true, opacity: .18, blending: THREE.AdditiveBlending, depthWrite: false }), 0, .3, 0));
+  const wingM = new THREE.MeshBasicMaterial({ color: '#c8fff4', transparent: true, opacity: .55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false });
+  const wings = [];
+  for (const sd of [-1, 1]) for (const [y, sc] of [[.36, 1], [.2, .7]]) { const pv = new THREE.Group(); pv.position.set(0, y, -.06); const w = mesh(new THREE.CircleGeometry(.24 * sc, 12), wingM, sd * .22 * sc, .05, 0); w.scale.y = .6; pv.add(w); fBody.add(pv); wings.push({ pv, sd }); }
+  const wand = new THREE.Group(); wand.position.set(.16, .3, .06); fBody.add(wand); wand.add(mesh(new THREE.CylinderGeometry(.012, .012, .28, 5), std('#ffe58a'), 0, .14, 0), mesh(new THREE.OctahedronGeometry(.06), glow('#fff2a8', 3), 0, .3, 0));
+  // the game
+  let list = null, fst = 'hidden', ft = 0, levT = 0, lastList = -1;
+  const pill = document.createElement('div'); pill.id = 'fairy-list'; pill.className = 'pill'; pill.hidden = true; $('tl').appendChild(pill);
+  const showList = () => { pill.innerHTML = "🧚 fairy's list · " + VEG.map((v, i) => list.need[i] ? `${v.icon} ${Math.min(list.got[i], list.need[i])}/${list.need[i]}` : '').filter(Boolean).join(' · '); };
+  const listText = () => VEG.map((v, i) => list.need[i] ? `${list.need[i]} ${list.need[i] > 1 ? v.many : v.k}` : '').filter(Boolean).join(', ');
+  const done = () => list && list.need.every((n, i) => list.got[i] >= n);
+  const sparkle = (p, n, cols = ['#fff2a8', '#ff9ad5', '#8affe0', '#ffffff']) => { for (let k = 0; k < n; k++) parts.emit(p.clone().add(rdir().multiplyScalar(R(0, .3))), rdir().multiplyScalar(R(.5, 2)), choice(cols), R(.8, 1.6), R(.1, .25)); };
+  function harvest(p) {
+    if (p.pull >= 0 || p.grow < 1) return;
+    const i = VEG.indexOf(p.v);
+    if (!list) { whisper('the veggies are still growing for someone... ring the bell at the magic veggie stand first!', 3000); return; }
+    if (list.got[i] >= list.need[i]) { whisper(list.need[i] ? `you already have enough ${p.v.many}!` : `the fairy doesn't need any ${p.v.many} today`, 2200); return; }
+    list.got[i]++; p.pull = 0; showList();
+    Sound.noise(.12, 380, 1, .5); Sound.tone(R(620, 760), .25, 'triangle', .1, .08); arp([784, 1175], .07, 'sine', .07, .5);
+    whisper(done() ? 'basket full! take it to the fairy at the stand' : `+1 ${p.v.k}!`, done() ? 3000 : 1200);
+  }
+  const it = addInteract(stand, 'Ring the bell at the magic veggie stand', () => {
+    if (fst === 'hidden' && !list) {
+      let n; do n = Math.floor(Math.random() * LISTS.length); while (n === lastList && LISTS.length > 1); lastList = n;
+      list = { need: LISTS[n].slice(), got: [0, 0, 0, 0, 0] }; fst = 'pop'; ft = 0;
+      for (let k = 0; k < 3; k++) Sound.tone(1568, .8, 'sine', .1, k * .28); Sound.tone(2093, .9, 'sine', .05, .1);
+      bellT = .9; it.label = "Show the fairy your basket";
+      setTimeout(() => { voice(10, 2.3); whisper(`the fairy: "hello! could you pick me ${listText()}? from the farm, please!"`, 6000); showList(); pill.hidden = false; }, 900);
+    } else if (fst === 'wait' && list) {
+      if (done()) { fst = 'take'; ft = 0; it.label = 'The fairy is busy'; voice(8, 2.4); whisper('the fairy: "oh, they\'re perfect! a little gift for you..."', 3000); arp([523.3, 659.3, 784, 1046.5], .09, 'triangle', .07, .6); }
+      else { voice(5, 2.2); whisper(`the fairy: "still need ${VEG.map((v, i) => list.need[i] - list.got[i] > 0 ? `${list.need[i] - list.got[i]} ${list.need[i] - list.got[i] > 1 ? v.many : v.k}` : '').filter(Boolean).join(', ')}!"`, 3600); }
+    }
+  }, 3.2, 1);
+  let bellT = 0;
+  const home = V(), fp = V(), tmpF = V();
+  updaters.push((dt, t) => {
+    // plants: pop out of the ground, then slowly grow back
+    for (const p of plants) {
+      if (p.pull >= 0) { p.pull += dt; const e = p.pull / .7; p.g.position.copy(p.base).addScaledVector(p.d, Math.sin(Math.min(1, e) * Math.PI * .6) * 1.1); p.g.rotateY(dt * 12); p.g.scale.setScalar(Math.max(.01, 1 - e * e));
+        if (e >= 1) { p.pull = -1; p.grow = 0; p.regrow = 14; p.g.visible = false; p.g.position.copy(p.base); sparkle(p.base.clone().add(pl.center).addScaledVector(p.d, .6), 14); if (!p.it.home) p.it.home = p.it.pos.clone(); p.it.pos.set(1e6, 1e6, 1e6); } }
+      else if (p.grow < 1) { if ((p.regrow -= dt) < 0) { p.g.visible = true; p.grow = Math.min(1, p.grow + dt / 1.5); p.g.scale.setScalar(Math.max(.01, p.grow)); if (p.grow >= 1) p.it.pos.copy(p.it.home); } }
+    }
+    bellT = Math.max(0, bellT - dt); bell.rotation.z = Math.sin(bellT * 30) * bellT * .5;
+    // the fairy
+    stand.localToWorld(home.set(0, 1.5, 1.4));
+    if (fst !== 'hidden') { ft += dt; fairy.visible = true; for (const w of wings) w.pv.rotation.y = w.sd * (.3 + Math.sin(t * 32) * .55); }
+    const P = player, pd = P.p.clone().sub(pl.center).normalize();
+    if (fst === 'pop') { const e = Math.min(1, ft / 1); stand.localToWorld(fp.set(0, 2.9, 0)); fp.lerp(home, e); fairy.scale.setScalar(Math.max(.01, e * 1.6)); if (Math.random() < .5) sparkle(fp, 2); if (e >= 1) fst = 'wait'; }
+    else if (fst === 'wait') fp.copy(home).addScaledVector(standD, Math.sin(t * 2.4) * .12);
+    else if (fst === 'take') { const e = Math.min(1, ft / 1.2); fp.lerpVectors(home, P.p.clone().addScaledVector(pd, 2.2), e * e * (3 - 2 * e)); if (e >= 1) { fst = 'sprinkle'; ft = 0; pill.hidden = true; list = null; pl.fairy = 1; Sound.sweep(400, 2400, 2.4, 'sine', .05); } }
+    else if (fst === 'sprinkle') { const e = Math.min(1, ft / 2.4), a = e * Math.PI * 4, side = tmpF.crossVectors(pd, Y).normalize(), fw = V().crossVectors(side, pd);
+      fp.copy(P.p).addScaledVector(pd, 2.4 - e * 1.4).addScaledVector(side, Math.cos(a) * 1.2).addScaledVector(fw, Math.sin(a) * 1.2);
+      for (let k = 0; k < 3; k++) parts.emit(fp.clone(), pd.clone().multiplyScalar(-R(.5, 1.5)).add(rdir().multiplyScalar(.6)), choice(['#fff2a8', '#ffd23d', '#ff9ad5', '#8affe0']), R(1, 2), R(.1, .22));
+      if (e >= 1) { fst = 'leave'; ft = 0; levT = 7; arp([784, 988, 1175, 1568], .1, 'sine', .07, 1); whisper('the fairy dust lifts you off your feet... you can float for 7 seconds!', 3400); } }
+    else if (fst === 'leave') { const e = Math.min(1, ft / 2.2); fp.addScaledVector(pd, dt * 5).addScaledVector(tmpF.copy(standD), dt * 3); fairy.scale.setScalar(Math.max(.01, (1 - e) * 1.6)); if (e >= 1) { fst = 'hidden'; fairy.visible = false; it.label = 'Ring the bell at the magic veggie stand'; } }
+    if (fst !== 'hidden') { fairy.position.copy(fp).sub(pl.center); const up = fp.clone().sub(pl.center).normalize(); fairy.quaternion.setFromUnitVectors(Y, up);
+      tmpF.copy(P.p).sub(fp); tmpF.addScaledVector(up, -tmpF.dot(up)); if (tmpF.lengthSq() > 1e-4) { const z = Z.clone().applyQuaternion(fairy.quaternion); fairy.rotateY(Math.atan2(V().crossVectors(z, tmpF.normalize()).dot(up), z.dot(tmpF))); }
+      fBody.position.y = Math.sin(t * 3) * .06; wand.rotation.z = Math.sin(t * 5) * .4; }
+    // levitating: no gravity, you drift up to hover a couple of metres off the ground and can glide around
+    if (levT > 0 && !ride && !hold) {
+      levT -= dt; gravMul = 0;
+      const h = sdfV(P.p), n = grad(P.p, V(), P.up), vn = P.vel.dot(n), want = Math.max(-4, Math.min(4, (2.6 + Math.sin(t * 2) * .3 - h) * 2.5));
+      P.vel.addScaledVector(n, want - vn); P.grounded = false;
+      if (Math.random() < .5) parts.emit(P.p.clone().add(rdir().multiplyScalar(R(.3, .7))), n.clone().multiplyScalar(-R(.3, .8)), choice(['#fff2a8', '#ff9ad5', '#8affe0']), R(.6, 1.2), R(.08, .16));
+      if (levT <= 0) whisper('the fairy dust wears off... back down you float', 2400);
+    }
+  });
 
   // ---- pollen garden: giant glowing flowers ----
   const flowerSpots = [[-22, 55], [-15, 64], [-29, 64], [-17, 45], [-29, 47]];

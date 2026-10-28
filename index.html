@@ -3448,7 +3448,7 @@ function buildBloom(pl) {
   for (let i = 0; i < 8; i++) {
     const d0 = rdir(), tdir = V().crossVectors(d0, rdir()).normalize(), span = R(.3, .55), pts = [];
     for (let k = 0; k <= 14; k++) { const a = k / 14 * span; const d = d0.clone().multiplyScalar(Math.cos(a)).addScaledVector(tdir, Math.sin(a)).normalize(); pts.push(d.multiplyScalar(pl.R - .3 + Math.sin(k / 14 * Math.PI) * R(3, 4.5))); }
-    const curve = new THREE.CatmullRomCurve3(pts), clear = pts.every(p => p.clone().normalize().angleTo(ll(-32, 155)) > .42);   // keep clear of the fairy tree
+    const curve = new THREE.CatmullRomCurve3(pts), clear = pts.every(p => p.clone().normalize().angleTo(ll(-44, 172)) > .42);   // keep clear of the fairy tree
     const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, .3, 7), vineMat); if (clear) pl.group.add(tube);
     const twist = []; for (let k = 0; k <= 60; k++) { const u = k / 60, p = curve.getPoint(u), tn = curve.getTangent(u), n1 = V().crossVectors(tn, p.clone().normalize()).normalize(), n2 = V().crossVectors(tn, n1); twist.push(p.clone().addScaledVector(n1, Math.cos(u * 30) * .35).addScaledVector(n2, Math.sin(u * 30) * .35)); }
     if (clear) pl.group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(twist), 120, .08, 5), vineMat));
@@ -3710,8 +3710,8 @@ function buildBloom(pl) {
 
   // ---- Glimmerbough: a giant glowing tree that's home to a whole fairy colony ----
   // little mushroom-roofed homes on its branches, floating fungus steps up to a balcony, and every fairy busy with something
-  { const treeD = at(-32, 155, .2); reserve(pl, treeD, .31, true);
-    const tree = placeFacing(pl, new THREE.Group(), treeD, 0, ll(-5, 150));
+  { const treeD = at(-44, 172, .2); reserve(pl, treeD, .31, true);
+    const tree = placeFacing(pl, new THREE.Group(), treeD, 0, ll(-10, 160));
     pl.group.updateMatrixWorld(true);
     const L = (x, y, z) => tree.localToWorld(V(x, y, z));
     const polar = (r, a, y) => V(Math.cos(a) * r, y, Math.sin(a) * r);
@@ -3762,12 +3762,12 @@ function buildBloom(pl) {
     { const ring = new THREE.LatheGeometry([[1.05, -.16], [BR, -.16], [BR, .04], [1.05, .04]].map(([r, y]) => new THREE.Vector2(r, y)), 40);
       tree.add(mesh(ring, woodT, 0, BY, 0), mesh(new THREE.TorusGeometry(BR, .05, 6, 60), gl('#ffe58a', 1.6), 0, BY - .06, 0).rotateX(Math.PI / 2)); }
     platforms.push({ pos: L(0, BY + .04, 0), n: treeD.clone(), r: BR, on: true });
-    let step0 = null;
+    let step0 = null; const stepTops = [];
     const steps = 15, stepA = .22, a0 = Math.PI * .5 + .4, lastA = a0 - (steps - 1) * stepA;
     for (let i = 0; i < steps; i++) { const a = a0 - i * stepA, y = .07 + i * .41, p = polar(4.5, a, y), col = choice(['#7affd8', '#ff9ad5', '#b48cff', '#7ae0ff']);
       const st = mesh(new THREE.CylinderGeometry(.88, .66, .16, 12), std(col, { emissive: col, emissiveIntensity: .8, roughness: .4 }), p.x, y - .08, p.z); st.scale.z = .85; st.rotation.y = -a; tree.add(st);
       tree.add(mesh(new THREE.SphereGeometry(.07, 6, 4), gl('#ffffff', 2), p.x, y - .2, p.z));
-      const pf = { pos: L(p.x, y, p.z), n: treeD.clone(), r: .86, on: true }; platforms.push(pf); if (!i) step0 = pf; }
+      const pf = { pos: L(p.x, y, p.z), n: treeD.clone(), r: .86, on: true }; platforms.push(pf); if (!i) step0 = pf; stepTops.push(p); }
     for (let k = 0; k < 36; k++) { const a = k / 36 * Math.PI * 2; if (Math.abs(Math.atan2(Math.sin(a - lastA), Math.cos(a - lastA))) < .35) continue;   // a gap where the steps arrive
       tree.add(mesh(new THREE.BoxGeometry(.06, .55, .06), woodT, Math.cos(a) * (BR - .08), BY + .3, Math.sin(a) * (BR - .08))); }
     { const rail = []; for (let k = 0; k <= 60; k++) { const a = lastA + .35 + k / 60 * (Math.PI * 2 - .7); rail.push(polar(BR - .08, a, BY + .58)); }
@@ -3777,6 +3777,20 @@ function buildBloom(pl) {
     // homes down among the roots
     [[Math.PI * .5 + 1.3, '#b48cff'], [Math.PI * .5 - 1.4, '#8affc8']].forEach(([a, c]) => { const p = polar(2.2, a, -.2); const h = homeAt(p.x, p.y, p.z, c, 1.25, Math.PI / 2 - a + Math.PI); addCollider(h, V(), .65, 1.6); homes.push(h); });
     addCollider(tree, V(0, -.5, 0), 1.35, 12.5);
+    // press E at the foot of the steps (or at the top) and you hop up (or down) them by yourself
+    const onGround = r => { const w = L(...polar(r, a0 + .12, 0).toArray()).sub(pl.center).setLength(pl.R).add(pl.center); return tree.worldToLocal(w); };
+    const deckP = polar(2.3, lastA + .45, BY + .04), footP = onGround(5.75);
+    const hopPath = from => { const pts = [from]; stepTops.forEach((p, i) => { if (i) pts.push(stepTops[i - 1].clone().lerp(p, .5).add(V(0, .32, 0))); pts.push(p.clone().add(V(0, .02, 0))); }); return pts; };
+    const climb = up => { const P = player, here = tree.worldToLocal(P.p.clone());
+      const pts = up ? [...hopPath(here), stepTops[steps - 1].clone().lerp(deckP, .4).add(V(0, .45, 0)), deckP] : [here, ...hopPath(stepTops[steps - 1].clone()).slice(1).reverse(), footP];
+      arp(up ? [523.3, 659.3, 784] : [784, 659.3, 523.3], .1, 'sine', .07, .6);
+      startRide(pts, tree, 3.6, () => { const n = grad(P.p, V(), P.up); if (!up) P.p.addScaledVector(n, -sdfV(P.p)); P.vel.set(0, 0, 0); P.grounded = true; Sound.tone(up ? 1046.5 : 523.3, .5, 'triangle', .06);
+        whisper(up ? 'up on the fairy balcony! the colony waves hello' : 'back down on the grass', 2400); }, pl.center);
+      whisper(up ? 'hop, hop, hop... up the glowing steps!' : 'down you go...', 2000); };
+    const foot = new THREE.Object3D(); foot.position.copy(footP); tree.add(foot);
+    addInteract(foot, 'Climb the glowing steps', () => climb(true), 1.9, .8);
+    const top = new THREE.Object3D(); top.position.copy(polar(3.2, lastA + .15, BY + .04)); tree.add(top);
+    addInteract(top, 'Walk down the glowing steps', () => climb(false), 1.3, .6);
     // lanterns swaying under the branches
     const lanterns = [];
     branches.forEach((b, k) => { for (const u of [.45, .8]) { const p = b.curve.getPoint(u), lg = new THREE.Group(); lg.position.copy(p); tree.add(lg);

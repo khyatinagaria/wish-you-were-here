@@ -449,11 +449,13 @@ const Sound = (() => {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     ctx = new AC();
-    master = ctx.createGain(); master.gain.value = on ? .55 : 0; master.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value = on ? .55 : 0;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -8; comp.knee.value = 6; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .2;   // keeps loud sfx over music from clipping
+    master.connect(comp); comp.connect(ctx.destination);
     const delay = ctx.createDelay(1.2); delay.delayTime.value = .37;
     const fb = ctx.createGain(); fb.gain.value = .45; const wet = ctx.createGain(); wet.gain.value = .32;
     delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
-    fx = ctx.createGain(); fx.connect(master); fx.connect(delay);
+    fx = ctx.createGain(); fx.gain.value = 1.7; fx.connect(master); fx.connect(delay);   // interaction sounds sit well above the music
     filt = ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 1200; filt.Q.value = .7;
     pad = ctx.createGain(); pad.gain.value = 0; filt.connect(pad); pad.connect(master); pad.connect(delay);
     // (no background drone: each planet gets its own music instead)
@@ -465,11 +467,8 @@ const Sound = (() => {
     songG = ctx.createGain(); songG.gain.value = 1; songG.connect(master);   // recorded songs skip the echo: they bring their own reverb
   }
   function falls(v) { if (fallsG) fallsG.gain.setTargetAtTime(v, ctx.currentTime, .4); }
-  // background music dips while something is being touched, then drifts back
-  function duck(sec) {
-    if (!ctx) return; const t = ctx.currentTime; duckEnd = Math.max(duckEnd, t + sec);
-    for (const [g, lo, hi] of [[musicG.gain, .5, 1], [songG.gain, .5, 1]]) { g.cancelScheduledValues(t); g.setTargetAtTime(lo, t, .3); g.setTargetAtTime(hi, duckEnd, 1.5); }
-  }
+  // music never dips any more: interaction sounds are mixed louder on the fx bus instead (Khyati's call)
+  function duck() {}
   // a soft music-box note (goes through the music bus so it ducks too)
   function bell(f, vol = .04, when = 0, dur = 2.4) {
     if (!ctx || !on) return; const t = ctx.currentTime + when;
@@ -1318,7 +1317,7 @@ function buildGrid(pl) {
   const note = (key, label) => pl.map.notes.push({ key, label });
   pl.shards = 0; pl.bumps = 0; pl.gravity = 0; pl.arcade = new Set(); pl.carDir = 1; let carDirT = 1;
   // soundtrack: "Home" by Resonance (slowed + reverb), chosen by Khyati
-  updaters.push(() => { const here = currentPlanet === pl && (mode === 'play' || mode === 'map' || mode === 'type'); Sound.track('audio/neon-home.mp3', here); $('song').hidden = !(here && Sound.on); });
+  updaters.push(() => { const here = currentPlanet === pl && (mode === 'play' || mode === 'map' || mode === 'type'); Sound.track('audio/neon-home.mp3', here); if (here) $('song').textContent = '♪ Home · Resonance (slowed + reverb)'; $('song').hidden = !((here || currentPlanet && currentPlanet.id === 'liminal' && (mode === 'play' || mode === 'map' || mode === 'type')) && Sound.on); });
   pl.counters = { shard: [() => pl.shards, 8], car: [() => pl.bumps, 1], gravity: [() => pl.gravity, 1], arcade: [() => pl.arcade.size, 3] };
   pl.doorAnywhere = true;
   const TT = { value: 0 }; updaters.push((dt, t) => TT.value = t);
@@ -2185,6 +2184,8 @@ function buildPixel(pl) {
   const mark = (name, d, kind, hide) => pl.map.landmarks.push({ name, d: d.clone().normalize(), kind, hide });
   const note = (key, label) => pl.map.notes.push({ key, label });
   pl.coins = 0; pl.gems = 0; pl.crates = 0; pl.bounces = 0; pl.sky = 0; pl.flags = new Set(); pl.key = false; pl.bossOpen = false;
+  // soundtrack: "Agitations tropicales" by L'Impératrice (karaoke version), chosen by Khyati
+  updaters.push(() => { const here = currentPlanet === pl && (mode === 'play' || mode === 'map' || mode === 'type'); Sound.track('audio/world-1-1.mp3', here, .24); if (here) { $('song').textContent = "♪ Agitations tropicales · L'Impératrice"; $('song').hidden = !Sound.on; } });
   pl.counters = { bounce: [() => pl.bounces, 1], coins: [() => pl.coins, 30], gems: [() => pl.gems, 5], crates: [() => pl.crates, 3], flags: [() => pl.flags.size, 3], sky: [() => pl.sky, 1], boss: [() => pl.bossOpen ? 1 : 0, 1] };
   pl.map.inventory = () => "in your Explorer's Pack: Map-Book · Scan-Glasses · Pix-Net" + (pl.key ? ' · Boss Key' : '') + (pl.gems ? ` · Gem jar (${pl.gems})` : '');
   note('bounce', 'Bounce on a bouncy pad (hold jump!)');

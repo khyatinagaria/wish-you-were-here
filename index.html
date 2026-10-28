@@ -127,6 +127,25 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
 #badge b{font-family:var(--f-pixel);font-weight:400;font-size:24px;letter-spacing:.2em;text-transform:uppercase;color:#fff0fb;text-shadow:0 0 12px rgba(255,154,213,.9)}
 #badge i{font-family:var(--f-dream);font-size:22px;color:#ffd6f2}
 #ttt{z-index:12;background:rgba(4,22,12,.5)}
+#ward{z-index:12;place-items:center end;padding-right:max(4vw,16px);background:linear-gradient(90deg,transparent 35%,rgba(40,12,48,.55));transition:opacity .4s}
+.wardcard{background:linear-gradient(160deg,#3a1a48ee,#1a0c2aee);padding:22px 24px;border-radius:20px;box-shadow:0 0 0 1px rgba(255,154,213,.45),0 0 46px rgba(255,154,213,.3);width:min(430px,100%);box-sizing:border-box;gap:12px}
+.wardcard h2{font-family:var(--f-dream);font-style:italic;font-weight:400;font-size:clamp(28px,3.4vw,40px);margin:0;color:#ffe8f6;text-shadow:0 0 18px rgba(255,154,213,.8)}
+.wardcard .eyebrow{color:#ff9ad5}
+.wrow{width:100%;text-align:left}
+.wrow .wl{font-family:var(--f-pixel);font-size:19px;letter-spacing:.08em;color:#ffd6f2;display:flex;justify-content:space-between}
+.wrow .wl i{font-family:var(--f-hand);font-style:normal;font-size:22px;color:#fff2a8;letter-spacing:0}
+.wrow .ws{display:flex;gap:8px;margin-top:4px}
+.wrow button{flex:1;height:44px;border-radius:12px;border:2px solid rgba(255,214,242,.25);background:rgba(0,0,0,.25);cursor:pointer;font-size:22px;line-height:1;padding:0;display:grid;place-items:center}
+.wrow button span{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2),0 0 10px currentColor}
+.wrow button:hover{border-color:#ff9ad5}
+.wrow button.on{border-color:#fff2a8;background:rgba(255,242,168,.15);box-shadow:0 0 14px rgba(255,242,168,.5)}
+#snap{z-index:12;background:transparent;transition:opacity .3s}
+#snap.dim{background:radial-gradient(ellipse at 50% 50%,rgba(12,8,32,.2),rgba(12,8,32,.8))}
+#snap-count{font-family:var(--f-dream);font-style:italic;font-size:min(30vw,220px);color:#fff;text-shadow:0 0 40px rgba(255,154,213,.9),0 0 90px rgba(127,246,255,.6);pointer-events:none}
+#snap-out{display:flex;flex-direction:column;align-items:center;gap:16px}
+#snap-out[hidden]{display:none}
+#snap-canvas{width:min(46vh,380px);height:auto;transform:rotate(-3deg);box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.1);animation:drop .7s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drop{from{transform:translateY(-60vh) rotate(-14deg);opacity:0}}
 .tttcard{background:linear-gradient(160deg,#123a2a,#081a14);box-shadow:0 0 0 1px rgba(141,255,176,.4),0 0 46px rgba(141,255,176,.3)}
 .tttcard h2{font-family:var(--f-dream);font-style:italic;font-weight:400;font-size:clamp(30px,3.8vw,44px);margin:0;color:#eafff0;text-shadow:0 0 18px rgba(141,255,176,.8)}
 .tttcard .eyebrow{color:#8dffb0}
@@ -258,6 +277,24 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
   </div>
 </div>
 
+<div id="ward" class="screen gone" aria-hidden="true">
+  <div class="card wardcard">
+    <div class="eyebrow">twinkle threads boutique</div>
+    <h2>Dress up, dreamer</h2>
+    <div id="ward-rows" style="display:flex;flex-direction:column;gap:12px;width:100%"></div>
+    <p class="keys">click to try things on · esc when you're done</p>
+    <div class="row"><button id="btn-ward-x" class="big">all done ✦</button></div>
+  </div>
+</div>
+
+<div id="snap" class="screen gone" aria-hidden="true">
+  <div id="snap-count"></div>
+  <div id="snap-out" hidden>
+    <canvas id="snap-canvas" width="640" height="780" aria-label="your polaroid photo"></canvas>
+    <div class="row"><button id="btn-snap-save" class="big">save photo</button><button id="btn-snap-again" class="big ghost">take another</button><button id="btn-snap-x" class="big ghost">close</button></div>
+  </div>
+</div>
+
 <div id="ttt" class="screen gone" aria-hidden="true">
   <div class="card namecard tttcard">
     <div class="eyebrow">an alien at the door</div>
@@ -332,6 +369,14 @@ const smooth = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0),
 const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: .8, metalness: 0, ...o });
 const glow = (hex, k = 2) => new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k) });
 function mesh(geo, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); return m; }
+// the dreamer's look can be changed at the Twinkle Threads boutique: 5 outfits, 5 hairdos, 5 pairs of shoes, 5 backpacks
+const LOOKS = {
+  outfit: [{ name: 'lavender dream', top: '#cdb6f0', glow: '#7a5cb8', legs: '#56689a' }, { name: 'mint fizz', top: '#9fe8c8', glow: '#2fb894', legs: '#3f5f7a' },
+    { name: 'peach sunset', top: '#ffc29a', glow: '#ff7a4a', legs: '#6a4a7a' }, { name: 'starry night', top: '#3a3f8a', glow: '#6a7aff', legs: '#22243a' }, { name: 'bubblegum', top: '#ff9ad5', glow: '#ff4fa8', legs: '#f6f2fb' }],
+  hair: [{ name: 'cosy brown', col: '#5b3b2b' }, { name: 'long lilac', col: '#b48cff' }, { name: 'space buns', col: '#ff7ab8' }, { name: 'mint bob', col: '#5fe0c0' }, { name: 'golden ponytail', col: '#ffd23d' }],
+  shoes: [{ name: 'cloud sneakers', col: '#f6f2fb' }, { name: 'cherry boots', col: '#e8262a' }, { name: 'moon platforms', col: '#2a2438' }, { name: 'puddle boots', col: '#ffd23d' }, { name: 'star skates', col: '#7ae0ff' }],
+  pack: [{ name: 'explorer pack', col: '#dcc39c' }, { name: 'bunny pack', col: '#ffc8e4' }, { name: 'cloud pack', col: '#ffffff' }, { name: 'rocket pack', col: '#cfd6e8' }, { name: 'fairy wings', col: '#c8fff4' }],
+};
 function canvasTex(w, h, draw) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g, w, h);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.userData = { canvas: c, ctx: g }; return t;
@@ -3900,6 +3945,56 @@ function buildBloom(pl) {
     note('colony', 'Say hello to the fairy colony'); note('treetop', 'Climb up to the fairy balcony');
     pl.counters.treetop = [() => pl.treetop || 0, 1]; }
 
+  // ---- Twinkle Threads: a magical clothing boutique (change your look) and a photo booth (get a polaroid) ----
+  { const shopD = at(-31, 134, .14), boothD = at(-19, 152, .07); reserve(pl, shopD, .15, true); reserve(pl, boothD, .07, true);
+    const shop = placeFacing(pl, new THREE.Group(), shopD, 0, ll(-5, 140));
+    const lilac = std('#f3d6ff', { emissive: '#c08ae8', emissiveIntensity: .3, roughness: .7 }), gold = std('#ffd23d', { metalness: .7, roughness: .3, emissive: '#c08a00', emissiveIntensity: .35 });
+    shop.add(mesh(new THREE.CylinderGeometry(2.15, 2.25, .22, 32), std('#ffc8e4', { roughness: .8, emissive: '#ff9ad5', emissiveIntensity: .2 }), 0, .02, 0));
+    shop.add(mesh(new THREE.CylinderGeometry(1.8, 1.85, 2.6, 32), lilac, 0, 1.4, 0));
+    const stripes = canvasTex(256, 16, (g, w) => { for (let x = 0; x < 16; x++) { g.fillStyle = x % 2 ? '#fff4fb' : '#ff9ad5'; g.fillRect(x * 16, 0, 16, 16); } });
+    shop.add(mesh(new THREE.ConeGeometry(2.25, 1.9, 32, 1, true), std('#ffffff', { map: stripes, emissive: '#ffffff', emissiveMap: stripes, emissiveIntensity: .3, side: THREE.DoubleSide }), 0, 3.6, 0));
+    shop.add(mesh(new THREE.SphereGeometry(.16, 12, 10), gold, 0, 4.6, 0), mesh(new THREE.OctahedronGeometry(.28), glow('#fff2a8', 3), 0, 5, 0));
+    for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2; shop.add(mesh(new THREE.SphereGeometry(.07, 8, 6), glow(k % 2 ? '#ff9ad5' : '#fff2a8', 2.6), Math.sin(a) * 2.2, 2.68, Math.cos(a) * 2.2)); }
+    // the doorway: a shimmering curtain under a gold arch
+    const curtain = new THREE.MeshBasicMaterial({ color: '#ff9ad5', transparent: true, opacity: .75 });
+    shop.add(mesh(new THREE.PlaneGeometry(1.05, 1.75), curtain, 0, 1.0, 1.83), mesh(new THREE.CircleGeometry(.525, 20, 0, Math.PI), curtain, 0, 1.875, 1.83));
+    shop.add(mesh(new THREE.TorusGeometry(.58, .06, 8, 24, Math.PI), gold, 0, 1.875, 1.86)); for (const x of [-.58, .58]) shop.add(mesh(new THREE.BoxGeometry(.1, 1.75, .1), gold, x, 1.0, 1.86));
+    for (const a of [-.75, .75]) { const w = mesh(new THREE.CircleGeometry(.36, 20), glow('#ffe6a6', 1.5), Math.sin(a) * 1.82, 1.6, Math.cos(a) * 1.82); w.rotation.y = a; shop.add(w);
+      const fr = mesh(new THREE.TorusGeometry(.38, .05, 6, 20), gold, Math.sin(a) * 1.84, 1.6, Math.cos(a) * 1.84); fr.rotation.y = a; shop.add(fr); }
+    const signT = canvasTex(320, 64, (g, w, h) => { g.fillStyle = '#4a1f5e'; g.fillRect(0, 0, w, h); g.strokeStyle = '#ffd23d'; g.lineWidth = 4; g.strokeRect(4, 4, w - 8, h - 8);
+      g.font = 'italic 40px "Instrument Serif", Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffe8f6'; g.fillText('✦ Twinkle Threads ✦', w / 2, h / 2 + 2); });
+    const sign = mesh(new THREE.PlaneGeometry(2.2, .44), std('#ffffff', { map: signT, emissive: '#ffffff', emissiveMap: signT, emissiveIntensity: .7 }), 0, 2.48, 1.9); shop.add(sign);
+    // outside: a rack of hoodies in all five colours, two mannequins and a mirror
+    const rack = new THREE.Group(); rack.position.set(1.95, 0, 1.6); rack.rotation.y = -.8; shop.add(rack);
+    for (const x of [-.75, .75]) rack.add(mesh(new THREE.CylinderGeometry(.03, .03, 1.5, 6), gold, x, .75, 0)); rack.add(mesh(new THREE.CylinderGeometry(.025, .025, 1.55, 6), gold, 0, 1.48, 0).rotateZ(Math.PI / 2));
+    LOOKS.outfit.forEach((o, i) => { const h = mesh(new THREE.CapsuleGeometry(.12, .3, 4, 8), std(o.top, { emissive: o.glow, emissiveIntensity: .2 }), -.56 + i * .28, 1.18, 0); h.scale.z = .5; rack.add(h, mesh(new THREE.TorusGeometry(.05, .01, 4, 10, Math.PI), gold, -.56 + i * .28, 1.46, 0)); });
+    [[-1.95, 1.45, .8, 1, 1], [-2.35, .6, 1.2, 4, 3]].forEach(([x, z, ry, oi, hi]) => { const mq = new THREE.Group(); mq.position.set(x, .1, z); mq.rotation.y = ry; shop.add(mq);
+      mq.add(mesh(new THREE.CylinderGeometry(.22, .25, .06, 14), gold, 0, .03, 0), mesh(new THREE.CylinderGeometry(.025, .025, .8, 6), gold, 0, .4, 0));
+      const o = LOOKS.outfit[oi]; mq.add(mesh(new THREE.CapsuleGeometry(.2, .36, 4, 10), std(o.top, { emissive: o.glow, emissiveIntensity: .2 }), 0, 1.05, 0), mesh(new THREE.SphereGeometry(.15, 12, 10), std('#fff4fb'), 0, 1.5, 0), mesh(new THREE.SphereGeometry(.16, 12, 8, 0, Math.PI * 2, 0, Math.PI * .55), std(LOOKS.hair[hi].col), 0, 1.53, -.01)); });
+    { const mir = new THREE.Group(); mir.position.set(-1.35, .1, 2.1); mir.rotation.y = .5; shop.add(mir); const ring = mesh(new THREE.TorusGeometry(.45, .05, 8, 28), gold, 0, 1.2, 0); ring.scale.y = 1.5; mir.add(ring);
+      const gl = mesh(new THREE.CircleGeometry(.44, 24), std('#dff4ff', { metalness: 1, roughness: .05, emissive: '#8ab8ff', emissiveIntensity: .25 }), 0, 1.2, 0); gl.scale.y = 1.5; mir.add(gl, mesh(new THREE.BoxGeometry(.06, .55, .06), gold, 0, .27, 0)); }
+    addCollider(shop, V(), 2.05, 5);
+    const shopIt = addInteract(shop, 'Try on magical clothes', () => { const away = player.p.clone().sub(shop.getWorldPosition(V())); away.addScaledVector(player.up, -away.dot(player.up)).normalize(); openWardrobe(away); voice(6, 1.9); }, 4.2, 1);
+    shopIt.note = 'style';
+    let shimmer = 0; updaters.push((dt, t) => { curtain.color.setHSL(.9 + Math.sin(t * .8) * .05, .9, .74 + Math.sin(t * 2.3) * .05); if ((shimmer -= dt) < 0 && mode === 'play' && currentPlanet === pl) { shimmer = .25; parts.emit(shop.localToWorld(V(R(-.5, .5), R(.2, 1.9), 1.9)), shopD.clone().multiplyScalar(R(.3, .8)), choice(['#fff2a8', '#ffffff', '#ff9ad5']), R(.8, 1.4), R(.06, .12)); } });
+    mark('Twinkle Threads boutique', shopD, null); note('style', 'Change your look at Twinkle Threads');
+    // the photo booth
+    const booth = placeFacing(pl, new THREE.Group(), boothD, 0, ll(-8, 135));
+    const mint = std('#bff5e4', { emissive: '#5fe0c0', emissiveIntensity: .3, roughness: .6 });
+    booth.add(mesh(new THREE.BoxGeometry(1.5, 2.3, 1.3), mint, 0, 1.15, 0), mesh(new THREE.BoxGeometry(1.62, .14, 1.42), gold, 0, 2.33, 0));
+    const ct = canvasTex(64, 8, (g, w) => { for (let x = 0; x < 8; x++) { g.fillStyle = x % 2 ? '#ffd6f0' : '#ff7ab8'; g.fillRect(x * 8, 0, 8, 8); } });
+    booth.add(mesh(new THREE.PlaneGeometry(.95, 1.75), std('#ffffff', { map: ct, emissive: '#ff9ad5', emissiveIntensity: .25, side: THREE.DoubleSide }), -.2, .95, .66));
+    const bt = canvasTex(256, 64, (g, w, h) => { g.fillStyle = '#ff7ab8'; g.fillRect(0, 0, w, h); g.font = '34px VT323, "Courier New", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff6fb'; g.fillText('PHOTO ✦ BOOTH', w / 2, h / 2 + 2); });
+    booth.add(mesh(new THREE.PlaneGeometry(1.45, .36), std('#ffffff', { map: bt, emissive: '#ffffff', emissiveMap: bt, emissiveIntensity: .7 }), 0, 2.62, .2), mesh(new THREE.BoxGeometry(1.5, .42, .08), gold, 0, 2.62, .15));
+    const bulbM = glow('#fff6d8', 2); booth.add(mesh(new THREE.SphereGeometry(.12, 12, 10), bulbM, .5, 1.95, .7), mesh(new THREE.CylinderGeometry(.1, .14, .1, 10), gold, .5, 1.95, .62).rotateX(Math.PI / 2));
+    for (let k = 0; k < 4; k++) { const pc = new THREE.Group(); pc.position.set(.76, 1.75 - k * .38, -.3 + (k % 2) * .25); pc.rotation.set(0, Math.PI / 2, (k % 2 ? .1 : -.08)); booth.add(pc);
+      pc.add(mesh(new THREE.PlaneGeometry(.26, .31), std('#fbf8f1')), mesh(new THREE.PlaneGeometry(.21, .2), glow(choice(['#ff9ad5', '#7ae0ff', '#b48cff', '#8affc8']), 1.1), 0, .03, .002)); }
+    addCollider(booth, V(), .9, 3);
+    let pop = 0; updaters.push(dt => { pop = Math.max(0, pop - dt * 3); bulbM.color.set('#fff6d8').multiplyScalar(2 + pop * 6); });
+    const boothIt = addInteract(booth, 'Take a polaroid photo', () => { takePhoto(); setTimeout(() => pop = 1, 3000); }, 3.4, 1);
+    boothIt.note = 'photo';
+    mark('Photo booth', boothD, null); note('photo', 'Take a polaroid at the photo booth'); }
+
   // ---- pollen garden: giant glowing flowers ----
   const flowerSpots = [[-22, 55], [-15, 64], [-29, 64], [-17, 45], [-29, 47]];
   flowerSpots.forEach(([la, lo], i) => {
@@ -4047,29 +4142,60 @@ for (const it of interactables) {
 
 /* ================= the dreamer (player) ================= */
 const dreamer = new THREE.Group(), inner = new THREE.Group(); dreamer.add(inner); scene.add(dreamer);
-const limbs = {}; {
+const limbs = {};
+const myLook = { outfit: 0, hair: 0, shoes: 0, pack: 0 };
+try { const s = JSON.parse(localStorage.getItem('wywh-look') || 'null'); if (s) for (const k in myLook) if (s[k] >= 0 && s[k] < 5) myLook[k] = s[k]; } catch (_) {}
+const avatar = {}; {
   const hoodie = std('#cdb6f0', { roughness: .9, emissive: '#7a5cb8', emissiveIntensity: .12 }), jeans = std('#56689a', { roughness: .9 }), skin = std('#f3caa8', { roughness: .7 });
-  const hair = std('#5b3b2b', { roughness: .9 }), pack = std('#dcc39c', { roughness: .85 }), shoe = std('#f6f2fb', { roughness: .6 });
+  const hair = std('#5b3b2b', { roughness: .9 });
   inner.add(mesh(new THREE.CapsuleGeometry(.29, .42, 6, 14), hoodie, 0, 1.18, 0));
   const hood = mesh(new THREE.SphereGeometry(.22, 14, 10), hoodie, 0, 1.52, -.14); hood.scale.set(1.1, .7, .9); inner.add(hood);
   inner.add(mesh(new THREE.BoxGeometry(.34, .14, .05), hoodie, 0, 1.0, .28));
   inner.add(mesh(new THREE.SphereGeometry(.23, 20, 16), skin, 0, 1.74, 0));
   const cap = mesh(new THREE.SphereGeometry(.25, 20, 14, 0, Math.PI * 2, 0, Math.PI * .58), hair, 0, 1.77, -.02); cap.rotation.x = -.3; inner.add(cap);
   for (const x of [-.08, .08]) inner.add(mesh(new THREE.SphereGeometry(.026, 8, 6), std('#2a1840'), x, 1.75, .215));
+  const hairG = new THREE.Group(); inner.add(hairG);
+  const feet = [];
   for (const s of [-1, 1]) {
     const hip = new THREE.Group(); hip.position.set(s * .13, .82, 0); inner.add(hip);
-    hip.add(mesh(new THREE.CapsuleGeometry(.105, .48, 4, 10), jeans, 0, -.36, 0), mesh(new THREE.BoxGeometry(.17, .11, .3), shoe, 0, -.76, .05));
+    hip.add(mesh(new THREE.CapsuleGeometry(.105, .48, 4, 10), jeans, 0, -.36, 0));
+    const foot = new THREE.Group(); foot.position.set(0, -.76, .05); hip.add(foot); feet.push(foot);
     const sh = new THREE.Group(); sh.position.set(s * .36, 1.36, 0); sh.rotation.z = s * .12; inner.add(sh);
     sh.add(mesh(new THREE.CapsuleGeometry(.08, .4, 4, 10), hoodie, 0, -.26, 0), mesh(new THREE.SphereGeometry(.07, 8, 6), skin, 0, -.53, 0));
     limbs[s < 0 ? 'hipL' : 'hipR'] = hip; limbs[s < 0 ? 'armL' : 'armR'] = sh;
   }
-  // the dreamer's pack
-  inner.add(mesh(new THREE.BoxGeometry(.5, .56, .24), pack, 0, 1.2, -.38), mesh(new THREE.BoxGeometry(.36, .22, .08), pack, 0, 1.03, -.52));
-  inner.add(mesh(new THREE.BoxGeometry(.52, .08, .26), std('#c9a8ec'), 0, 1.46, -.38));
-  for (const x of [-.17, .17]) inner.add(mesh(new THREE.BoxGeometry(.06, .5, .05), std('#a88a64'), x, 1.22, .29));
-  inner.add(mesh(new THREE.OctahedronGeometry(.06), glow('#fff2a8', 2.6), .19, .98, -.54));
-  inner.add(mesh(new THREE.CylinderGeometry(.075, .075, .17, 10), new THREE.MeshBasicMaterial({ color: '#dfffe8', transparent: true, opacity: .35, depthWrite: false }), -.31, 1.02, -.4), mesh(new THREE.SphereGeometry(.05, 8, 6), glow('#c8ff9a', 3), -.31, 1.02, -.4));
+  const packG = new THREE.Group(); inner.add(packG); let wings = [];
+  const clear = g => { while (g.children.length) g.remove(g.children[0]); };
+  avatar.outfit = i => { const o = LOOKS.outfit[i]; hoodie.color.set(o.top); hoodie.emissive.set(o.glow); hoodie.emissiveIntensity = i === 3 ? .35 : .12; jeans.color.set(o.legs); };
+  avatar.hair = i => { const o = LOOKS.hair[i]; hair.color.set(o.col); hair.emissive.set(i ? o.col : '#000000'); hair.emissiveIntensity = i ? .18 : 0; clear(hairG);
+    if (i === 1) { const back = mesh(new THREE.CapsuleGeometry(.2, .42, 4, 10), hair, 0, 1.5, -.12); back.scale.set(1.15, 1, .6); hairG.add(back); for (const x of [-.2, .2]) hairG.add(mesh(new THREE.CapsuleGeometry(.07, .3, 4, 8), hair, x, 1.58, .04)); }
+    if (i === 2) for (const x of [-.17, .17]) { hairG.add(mesh(new THREE.SphereGeometry(.12, 12, 10), hair, x, 1.97, -.04)); hairG.add(mesh(new THREE.TorusGeometry(.07, .025, 6, 12), std('#fff2a8', { emissive: '#ffd23d', emissiveIntensity: .6 }), x, 1.89, -.04).rotateX(Math.PI / 2)); }
+    if (i === 3) { const bob = mesh(new THREE.SphereGeometry(.29, 18, 12, 0, Math.PI * 2, 0, Math.PI * .72), hair, 0, 1.75, -.03); bob.rotation.x = -.15; hairG.add(bob); hairG.add(mesh(new THREE.BoxGeometry(.36, .07, .08), hair, 0, 1.87, .2)); }
+    if (i === 4) { const tail = mesh(new THREE.CapsuleGeometry(.08, .38, 4, 8), hair, 0, 1.62, -.32); tail.rotation.x = .5; hairG.add(tail, mesh(new THREE.SphereGeometry(.07, 8, 6), std('#ff7ab8', { emissive: '#ff4fa8', emissiveIntensity: .4 }), 0, 1.85, -.25)); } };
+  avatar.shoes = i => { const o = LOOKS.shoes[i]; for (const f of feet) { clear(f);
+    const m = std(o.col, { roughness: .5, emissive: i === 4 ? o.col : '#000000', emissiveIntensity: i === 4 ? .9 : 0 });
+    if (i === 0) f.add(mesh(new THREE.BoxGeometry(.17, .11, .3), m), mesh(new THREE.BoxGeometry(.18, .03, .31), std('#c9a8ec'), 0, -.05, 0));
+    if (i === 1) f.add(mesh(new THREE.BoxGeometry(.18, .12, .3), m), mesh(new THREE.CylinderGeometry(.11, .1, .26, 10), m, 0, .16, -.03));
+    if (i === 2) f.add(mesh(new THREE.BoxGeometry(.18, .1, .3), std('#f6f2fb')), mesh(new THREE.BoxGeometry(.2, .14, .33), m, 0, -.1, 0));
+    if (i === 3) f.add(mesh(new THREE.BoxGeometry(.18, .12, .31), m), mesh(new THREE.CylinderGeometry(.12, .11, .3, 10), m, 0, .17, -.03), mesh(new THREE.TorusGeometry(.115, .015, 5, 14), std('#ffffff'), 0, .32, -.03).rotateX(Math.PI / 2));
+    if (i === 4) { f.add(mesh(new THREE.BoxGeometry(.17, .12, .3), m)); for (const z of [-.1, .1]) f.add(mesh(new THREE.CylinderGeometry(.04, .04, .16, 8), glow('#ffd23d', 2), 0, -.08, z).rotateZ(Math.PI / 2)); } } };
+  avatar.pack = i => { const o = LOOKS.pack[i], m = std(o.col, { roughness: .8, emissive: i === 2 ? '#dfe8ff' : '#000000', emissiveIntensity: i === 2 ? .35 : 0 }); clear(packG); wings = [];
+    if (i !== 4) for (const x of [-.17, .17]) packG.add(mesh(new THREE.BoxGeometry(.06, .5, .05), std(i === 0 ? '#a88a64' : '#c9a8ec'), x, 1.22, .29));
+    if (i === 0) { packG.add(mesh(new THREE.BoxGeometry(.5, .56, .24), m, 0, 1.2, -.38), mesh(new THREE.BoxGeometry(.36, .22, .08), m, 0, 1.03, -.52), mesh(new THREE.BoxGeometry(.52, .08, .26), std('#c9a8ec'), 0, 1.46, -.38));
+      packG.add(mesh(new THREE.OctahedronGeometry(.06), glow('#fff2a8', 2.6), .19, .98, -.54));
+      packG.add(mesh(new THREE.CylinderGeometry(.075, .075, .17, 10), new THREE.MeshBasicMaterial({ color: '#dfffe8', transparent: true, opacity: .35, depthWrite: false }), -.31, 1.02, -.4), mesh(new THREE.SphereGeometry(.05, 8, 6), glow('#c8ff9a', 3), -.31, 1.02, -.4)); }
+    if (i === 1) { const b = mesh(new THREE.SphereGeometry(.3, 14, 10), m, 0, 1.18, -.42); b.scale.set(1, 1.05, .7); packG.add(b, mesh(new THREE.SphereGeometry(.2, 12, 8), m, 0, 1.52, -.42));
+      for (const x of [-.09, .09]) { const e = mesh(new THREE.CapsuleGeometry(.055, .26, 4, 8), m, x, 1.82, -.42); e.rotation.z = x * 2; packG.add(e, mesh(new THREE.SphereGeometry(.025, 6, 4), std('#2a1840'), x, 1.56, -.25)); }
+      packG.add(mesh(new THREE.SphereGeometry(.03, 6, 4), std('#ff7ab8'), 0, 1.5, -.24), mesh(new THREE.SphereGeometry(.09, 8, 6), std('#ffffff'), 0, 1.0, -.66)); }
+    if (i === 2) for (const [x, y, s] of [[0, 1.22, .26], [-.2, 1.1, .2], [.2, 1.1, .2], [-.12, 1.4, .18], [.14, 1.38, .19], [0, .98, .17]]) packG.add(mesh(new THREE.SphereGeometry(s, 12, 10), m, x, y, -.42 - (s - .17) * .5));
+    if (i === 3) { for (const x of [-.14, .14]) { packG.add(mesh(new THREE.CylinderGeometry(.12, .12, .55, 12), std('#cfd6e8', { metalness: .7, roughness: .25 }), x, 1.2, -.42), mesh(new THREE.ConeGeometry(.12, .2, 12), std('#e8262a'), x, 1.57, -.42), mesh(new THREE.ConeGeometry(.08, .22, 10), glow('#ffb04a', 2.6), x, .85, -.42).rotateX(Math.PI)); } }
+    if (i === 4) { const wm = new THREE.MeshBasicMaterial({ color: '#c8fff4', transparent: true, opacity: .55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false });
+      for (const sd of [-1, 1]) for (const [y, sc] of [[1.42, 1], [1.08, .7]]) { const pv = new THREE.Group(); pv.position.set(sd * .06, y, -.3); const w = mesh(new THREE.CircleGeometry(.42 * sc, 16), wm, sd * .38 * sc, .08, 0); w.scale.y = .62; pv.add(w); packG.add(pv); wings.push({ pv, sd }); } } };
+  avatar.flutter = t => { for (const w of wings) w.pv.rotation.y = w.sd * (.35 + Math.sin(t * 6) * .3); };
+  avatar.apply = () => { avatar.outfit(myLook.outfit); avatar.hair(myLook.hair); avatar.shoes(myLook.shoes); avatar.pack(myLook.pack); };
+  avatar.apply();
 }
+updaters.push((dt, t) => avatar.flutter(t));
 const shadow = new THREE.Mesh(new THREE.CircleGeometry(.55, 24), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: .32, depthWrite: false }));
 scene.add(shadow);
 
@@ -4167,6 +4293,8 @@ const keys = new Set();
 const GAME_KEYS = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight', 'KeyE', 'KeyF', 'KeyM'];
 let jumpQueued = false;
 addEventListener('keydown', e => {
+  if (wardOn) { if (e.code === 'Escape') closeWardrobe(); return; }
+  if (snapOn) { if (e.code === 'Escape') closeSnap(); return; }
   if (pzOn) { if (e.code === 'Escape') closePizza(); return; }
   if (tttOn) { if (e.code === 'Escape') closeTTT(); else { const m = /^(Digit|Numpad)([1-9])$/.exec(e.code); if (m) tttPlay(+m[2] - 1); } return; }
   if (mode === 'map' && (e.code === 'KeyM' || e.code === 'Escape')) { e.preventDefault(); closeMap(); return; }
@@ -4364,6 +4492,7 @@ const look2 = V();
 function placeCamera(dt) {
   const P = player;
   camUp.lerp(P.up, 1 - Math.exp(-dt * 5)).normalize();
+  if (camOverride) { const o = camOverride(); camPos.lerp(o.pos, 1 - Math.exp(-dt * 5)); camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(o.look); return; }   // dressing room / photo booth
   const cf = tripYaw ? tripF.copy(P.fwd).applyAxisAngle(P.up, tripYaw) : P.fwd;   // a mushroom makes the world slowly spin around you
   const target = tmp.copy(P.p).addScaledVector(P.up, 1.4)
     .addScaledVector(cf, -camDist * Math.cos(pitch)).addScaledVector(P.up, camDist * Math.sin(pitch));
@@ -4466,6 +4595,84 @@ function closeTTT() {
   const cb = tttCb; tttCb = null; cb && cb(tttRes === 'win' || tttRes === 'lose' ? tttRes : 'away');
 }
 $('btn-ttt-again').addEventListener('click', tttReset);
+
+/* ---- Twinkle Threads: the dressing-up panel. the camera swings round to look at you while you try things on ---- */
+let wardOn = false, camOverride = null, snapCb = null;
+const WARD_ROWS = [['outfit', 'outfit colour'], ['hair', 'hair'], ['shoes', 'shoes'], ['pack', 'backpack']];
+const WARD_ICON = { hair: ['💇', '🌙', '🎀', '🫧', '✨'], shoes: ['☁️', '🍒', '🌑', '☔', '⭐'], pack: ['🎒', '🐰', '☁️', '🚀', '🧚'] };
+function wardBuild() {
+  const box = $('ward-rows'); box.innerHTML = '';
+  for (const [k, label] of WARD_ROWS) {
+    const row = document.createElement('div'); row.className = 'wrow';
+    row.innerHTML = `<div class="wl">${label}<i>${LOOKS[k][myLook[k]].name}</i></div><div class="ws"></div>`;
+    LOOKS[k].forEach((o, i) => { const b = document.createElement('button'); b.className = i === myLook[k] ? 'on' : ''; b.title = o.name; b.setAttribute('aria-label', `${label}: ${o.name}`);
+      b.innerHTML = k === 'outfit' ? `<span style="background:${o.top};color:${o.top}"></span>` : WARD_ICON[k][i];
+      b.addEventListener('click', () => { myLook[k] = i; avatar[k](i); try { localStorage.setItem('wywh-look', JSON.stringify(myLook)); } catch (_) {}
+        Sound.tone(880 + i * 110, .25, 'triangle', .06); Sound.tone(1320 + i * 165, .3, 'sine', .03, .06);
+        parts && parts.emit(player.p.clone().addScaledVector(player.up, 1.2), player.up.clone().multiplyScalar(1.5).add(rdir().multiplyScalar(.8)), choice(['#fff2a8', '#ff9ad5', '#8affe0']), 1, .12);
+        wardBuild(); });
+      row.querySelector('.ws').appendChild(b); });
+    box.appendChild(row);
+  }
+}
+function frontView(dist, side, lift) { return () => { const P = player, r = V().crossVectors(P.up, P.face).normalize();
+  return { pos: P.p.clone().addScaledVector(P.up, 1.35 + lift).addScaledVector(P.face, dist), look: P.p.clone().addScaledVector(P.up, 1.05 + lift * .5).addScaledVector(r, side) }; }; }
+function openWardrobe(faceDir) {
+  if (mode !== 'play') return false;
+  wardOn = true; mode = 'type'; keys.clear(); stick.dx = stick.dy = 0; if (locked()) document.exitPointerLock();
+  if (faceDir) player.face.copy(faceDir);
+  camOverride = frontView(3.4, .95, 0); wardBuild();
+  $('ward').classList.remove('gone'); $('ward').setAttribute('aria-hidden', 'false'); arp([784, 988, 1175], .08, 'sine', .06, .5); return true;
+}
+function closeWardrobe() {
+  if (!wardOn) return; wardOn = false; mode = 'play'; camOverride = null;
+  $('ward').classList.add('gone'); $('ward').setAttribute('aria-hidden', 'true'); cv.focus();
+  whisper(`looking dreamy! ${LOOKS.outfit[myLook.outfit].name}, ${LOOKS.hair[myLook.hair].name}, ${LOOKS.shoes[myLook.shoes].name} and ${LOOKS.pack[myLook.pack].name}`, 3400);
+}
+$('btn-ward-x').addEventListener('click', closeWardrobe);
+
+/* ---- the photo booth: 3, 2, 1, flash, and a polaroid of you with the planets floating behind ---- */
+let snapOn = false, snapTimers = [];
+function photoPose() {
+  const P = player, u = P.up, head = P.p.clone().addScaledVector(u, 1.3);
+  let best = null, bs = -9;
+  for (const pl of PLANETS) { if (pl === currentPlanet) continue; const d = pl.center.clone().sub(head).normalize(), e = d.dot(u), sc = e > .08 && e < .85 ? 1 - Math.abs(e - .4) : -1 + e; if (sc > bs) { bs = sc; best = d; } }
+  const h = best.clone().addScaledVector(u, -best.dot(u)); if (h.lengthSq() < 1e-4) h.copy(P.face).negate(); h.normalize();
+  const th = Math.min(.55, Math.asin(Math.min(.95, Math.max(0, best.dot(u)))) * .6);
+  P.face.copy(h).negate();
+  return () => ({ pos: P.p.clone().addScaledVector(u, 1.0).addScaledVector(h, -3.6), look: head.clone().addScaledVector(h, 3.6).addScaledVector(u, 3.6 * Math.tan(th)) });
+}
+function takePhoto() {
+  if (mode !== 'play' && !snapOn) return false;
+  snapOn = true; mode = 'type'; keys.clear(); stick.dx = stick.dy = 0; if (locked()) document.exitPointerLock();
+  camOverride = photoPose(); $('snap-out').hidden = true; $('snap').classList.remove('dim');
+  $('snap').classList.remove('gone'); $('snap').setAttribute('aria-hidden', 'false');
+  const cnt = $('snap-count'); snapTimers.forEach(clearTimeout); snapTimers = [];
+  ['3', '2', '1'].forEach((n, i) => snapTimers.push(setTimeout(() => { cnt.textContent = n; Sound.tone(660, .2, 'square', .05); }, 600 + i * 800)));
+  snapTimers.push(setTimeout(() => { cnt.textContent = ''; snapCb = develop; }, 600 + 3 * 800));
+  return true;
+}
+function develop(src) {
+  const c = $('snap-canvas'), g = c.getContext('2d'), W = src.width, H = src.height, side = Math.min(W, H) * .92;
+  g.fillStyle = '#fbf8f1'; g.fillRect(0, 0, 640, 780);
+  g.save(); g.filter = 'saturate(1.12) contrast(1.04)'; g.drawImage(src, (W - side) / 2, (H - side) / 2, side, side, 40, 40, 560, 560); g.restore();
+  const warm = g.createLinearGradient(0, 40, 0, 600); warm.addColorStop(0, 'rgba(255,200,240,.10)'); warm.addColorStop(1, 'rgba(255,230,170,.12)'); g.fillStyle = warm; g.fillRect(40, 40, 560, 560);
+  g.strokeStyle = 'rgba(0,0,0,.08)'; g.strokeRect(40.5, 40.5, 559, 559);
+  g.fillStyle = '#4a3a6a'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '700 50px Caveat, "Segoe Print", "Comic Sans MS", cursive'; g.fillText('wish you were here ✦', 320, 668);
+  const when = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  g.font = '500 30px Caveat, "Segoe Print", "Comic Sans MS", cursive'; g.fillStyle = '#7a6a9a'; g.fillText(`${currentPlanet ? currentPlanet.name : 'somewhere between'} · ${when}`, 320, 722);
+  for (const [x, y, s] of [[70, 668, 10], [574, 712, 8], [596, 650, 6]]) { g.save(); g.translate(x, y); g.fillStyle = '#ff9ad5'; g.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? s * .45 : s, a = k * Math.PI / 5 - Math.PI / 2; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.fill(); g.restore(); }
+  flash(); Sound.noise(.12, 3000, 1, .3); Sound.tone(1568, .4, 'sine', .05, .05);
+  snapTimers.push(setTimeout(() => { $('snap').classList.add('dim'); $('snap-out').hidden = false; Sound.sweep(400, 900, .5, 'triangle', .04); $('btn-snap-save').focus(); }, 450));
+}
+function closeSnap() {
+  if (!snapOn) return; snapOn = false; snapTimers.forEach(clearTimeout); snapTimers = []; snapCb = null; mode = 'play'; camOverride = null; $('snap-count').textContent = '';
+  $('snap').classList.add('gone'); $('snap').setAttribute('aria-hidden', 'true'); cv.focus();
+}
+$('btn-snap-x').addEventListener('click', closeSnap);
+$('btn-snap-again').addEventListener('click', () => { snapOn = false; mode = 'play'; takePhoto(); });
+$('btn-snap-save').addEventListener('click', () => { try { const a = document.createElement('a'); a.href = $('snap-canvas').toDataURL('image/png'); a.download = 'wish-you-were-here-polaroid.png'; document.body.appendChild(a); a.click(); a.remove(); } catch (_) { whisper('your browser would not let the photo save. try a right-click on it instead', 3200); } });
 $('btn-ttt-x').addEventListener('click', closeTTT);
 
 /* ---- the pizza kitchen: dough, roll it flat, toppings, 5 seconds in the oven, then serve with cokes ---- */
@@ -4870,6 +5077,7 @@ function frame(now) {
   }
   skyGroup.position.copy(camera.position);
   composer.render(dt);
+  if (snapCb) { const cb = snapCb; snapCb = null; cb(renderer.domElement); }   // the photo booth grabs this exact frame
 }
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();

@@ -214,6 +214,7 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
   </div>
   <div id="tr">
     <button id="btn-map" class="pill">map</button>
+    <button id="btn-view" class="pill" title="switch camera (V)">player view</button>
     <button id="btn-sound" class="pill" aria-label="Toggle sound">sound on</button>
     <button id="btn-fs" class="pill">⛶ fullscreen</button>
   </div>
@@ -221,7 +222,7 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
   <div id="whisper"></div>
   <div id="badge" aria-live="polite"><div class="medal">✦</div><b>cosmos badge</b><i id="badge-sub"></i></div>
   <div id="prompt" class="pill" hidden><kbd id="prompt-key">E</kbd><span id="prompt-text"></span></div>
-  <div id="help">WASD walk · mouse look · space jump · shift run · E touch · M map · F fullscreen</div>
+  <div id="help">WASD walk · mouse look · space jump · shift run · E touch · M map · V view · F fullscreen</div>
 </div>
 
 <div id="touch" hidden>
@@ -3946,8 +3947,8 @@ function buildBloom(pl) {
     pl.counters.treetop = [() => pl.treetop || 0, 1]; }
 
   // ---- Twinkle Threads: a magical clothing boutique (change your look) and a photo booth (get a polaroid) ----
-  { const shopD = at(-31, 134, .14), boothD = at(-19, 152, .07); reserve(pl, shopD, .15, true); reserve(pl, boothD, .07, true);
-    const shop = placeFacing(pl, new THREE.Group(), shopD, 0, ll(-5, 140));
+  { const shopD = at(16, 78, .14), boothD = at(3, 95, .07); reserve(pl, shopD, .15, true); reserve(pl, boothD, .07, true);
+    const shop = placeFacing(pl, new THREE.Group(), shopD, 0, ll(34, 74));
     const lilac = std('#f3d6ff', { emissive: '#c08ae8', emissiveIntensity: .3, roughness: .7 }), gold = std('#ffd23d', { metalness: .7, roughness: .3, emissive: '#c08a00', emissiveIntensity: .35 });
     shop.add(mesh(new THREE.CylinderGeometry(2.15, 2.25, .22, 32), std('#ffc8e4', { roughness: .8, emissive: '#ff9ad5', emissiveIntensity: .2 }), 0, .02, 0));
     shop.add(mesh(new THREE.CylinderGeometry(1.8, 1.85, 2.6, 32), lilac, 0, 1.4, 0));
@@ -3979,7 +3980,7 @@ function buildBloom(pl) {
     let shimmer = 0; updaters.push((dt, t) => { curtain.color.setHSL(.9 + Math.sin(t * .8) * .05, .9, .74 + Math.sin(t * 2.3) * .05); if ((shimmer -= dt) < 0 && mode === 'play' && currentPlanet === pl) { shimmer = .25; parts.emit(shop.localToWorld(V(R(-.5, .5), R(.2, 1.9), 1.9)), shopD.clone().multiplyScalar(R(.3, .8)), choice(['#fff2a8', '#ffffff', '#ff9ad5']), R(.8, 1.4), R(.06, .12)); } });
     mark('Twinkle Threads boutique', shopD, null); note('style', 'Change your look at Twinkle Threads');
     // the photo booth
-    const booth = placeFacing(pl, new THREE.Group(), boothD, 0, ll(-8, 135));
+    const booth = placeFacing(pl, new THREE.Group(), boothD, 0, ll(14, 118));
     const mint = std('#bff5e4', { emissive: '#5fe0c0', emissiveIntensity: .3, roughness: .6 });
     booth.add(mesh(new THREE.BoxGeometry(1.5, 2.3, 1.3), mint, 0, 1.15, 0), mesh(new THREE.BoxGeometry(1.62, .14, 1.42), gold, 0, 2.33, 0));
     const ct = canvasTex(64, 8, (g, w) => { for (let x = 0; x < 8; x++) { g.fillStyle = x % 2 ? '#ffd6f0' : '#ff7ab8'; g.fillRect(x * 8, 0, 8, 8); } });
@@ -4290,7 +4291,7 @@ function rideEscalatorUp(pl) {
 
 /* ================= input ================= */
 const keys = new Set();
-const GAME_KEYS = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight', 'KeyE', 'KeyF', 'KeyM'];
+const GAME_KEYS = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight', 'KeyE', 'KeyF', 'KeyM', 'KeyV'];
 let jumpQueued = false;
 addEventListener('keydown', e => {
   if (wardOn) { if (e.code === 'Escape') closeWardrobe(); return; }
@@ -4306,6 +4307,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyF') toggleFS();
   if (e.code === 'KeyM') openMap();
+  if (e.code === 'KeyV') toggleView();
 });
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
@@ -4489,11 +4491,24 @@ function placeDreamer(dt, t) {
 }
 
 const look2 = V();
+// player view: see the world through the dreamer's own eyes (V or the button beside the map)
+let fpv = false; try { fpv = localStorage.getItem('wywh-view') === 'player'; } catch (_) {}
+function toggleView() { fpv = !fpv; try { localStorage.setItem('wywh-view', fpv ? 'player' : 'normal'); } catch (_) {} $('btn-view').textContent = fpv ? 'normal view' : 'player view'; }
 function placeCamera(dt) {
   const P = player;
   camUp.lerp(P.up, 1 - Math.exp(-dt * 5)).normalize();
+  dreamer.visible = !fpv || !!camOverride;
   if (camOverride) { const o = camOverride(); camPos.lerp(o.pos, 1 - Math.exp(-dt * 5)); camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(o.look); return; }   // dressing room / photo booth
   const cf = tripYaw ? tripF.copy(P.fwd).applyAxisAngle(P.up, tripYaw) : P.fwd;   // a mushroom makes the world slowly spin around you
+  if (fpv) {
+    const a = -(pitch - .38) * 1.2 - (P.sit ? .14 : 0);   // mouse up/down tilts your head
+    const ef = (ride || hold) && !tripYaw ? P.face : cf;   // on a ride or in the kart, look where you're heading
+    camPos.copy(P.p).addScaledVector(P.up, (P.sit ? 1.4 : 1.42) + inner.position.y).addScaledVector(ef, .22);
+    camera.position.copy(camPos); camera.up.copy(camUp);
+    look2.copy(camPos).addScaledVector(ef, Math.cos(a) * 10).addScaledVector(P.up, Math.sin(a) * 10); camera.lookAt(look2);
+    if (tripEnv > 0) camera.rotateZ(Math.sin(tripT * 1.1) * .32 * tripEnv);
+    return;
+  }
   const target = tmp.copy(P.p).addScaledVector(P.up, 1.4)
     .addScaledVector(cf, -camDist * Math.cos(pitch)).addScaledVector(P.up, camDist * Math.sin(pitch));
   const rate = playTime < 2.5 ? 1.2 + playTime * 2 : 9;
@@ -4867,6 +4882,8 @@ function closeMap() {
   mode = 'play'; $('map').classList.add('gone'); $('map').setAttribute('aria-hidden', 'true'); cv.focus();
 }
 $('btn-map').addEventListener('click', () => mode === 'map' ? closeMap() : openMap());
+$('btn-view').addEventListener('click', e => { toggleView(); e.currentTarget.blur(); });
+if (fpv) $('btn-view').textContent = 'normal view';
 $('btn-map-close').addEventListener('click', closeMap);
 // the big screen's name prompt
 const NAMER = { eye: 'the big screen', title: 'Put your name in lights', ph: 'type your name', hint: '1 to 10 words · enter to project · esc to cancel', go: 'project it', max: 10, riddle: false, cancel: null };

@@ -2464,7 +2464,7 @@ function buildPixel(pl) {
   for (const f of [.2, .4, .6, .8]) coin(under[Math.floor(f * (under.length - 1))].clone().multiplyScalar(pl.R + 1));
 
   // ---- the Go-Kart Grand Prix: a winding asphalt track with three loops, almost all the way round the planet ----
-  // hop in at the START gate and the kart drives itself to the FINISH gate at the other end
+  // hop in at the START gate and drive yourself round to the FINISH gate at the other end
   const kartTex = pixTex(16, 16, g => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
     const kerb = y < 2 || y > 13, n = ((x * 7 + y * 13) % 5) * 3;
     g.fillStyle = kerb ? (x < 8 ? '#ff3b3b' : '#ffffff') : (y === 7 || y === 8) && x < 7 ? '#fff6c8' : `rgb(${92 + n},${94 + n},${104 + n})`; g.fillRect(x, y, 1, 1); } });
@@ -2516,7 +2516,7 @@ function buildPixel(pl) {
     if (lights) for (let k = 0; k < 4; k++) { const m = new THREE.MeshBasicMaterial({ color: '#401010' }); lamps.push(m); gg.add(mesh(new THREE.SphereGeometry(.15, 10, 8), m, (k - 1.5) * .45, 2.48, .1)); gg.add(mesh(new THREE.SphereGeometry(.15, 10, 8), m, (k - 1.5) * .45, 2.48, -.1)); }
     const f = kartFrame(s); f.p.normalize().multiplyScalar(pl.R - .02); setFrame(gg, f); pl.group.add(gg);
     for (const x of [-half, half]) { addCollider(gg, V(x, 0, 0), .3, 3.5); reserve(pl, gg.localToWorld(V(x, 0, 0)).sub(pl.center).normalize(), .05, true); }
-    return { g: gg, lamps };
+    return { g: gg, lamps, f };
   }
   pl.group.updateMatrixWorld(true);
   const startGate = kartGate('START', 3.6, true), finishGate = kartGate('FINISH', kart.path.total - 2.6);
@@ -2532,58 +2532,96 @@ function buildPixel(pl) {
     for (const x of [-.76, .76]) kg.add(mesh(new THREE.PlaneGeometry(.32, .32), std('#ffffff', { map: numTex }), x, .32, -.05).rotateY(x > 0 ? Math.PI / 2 : -Math.PI / 2));
     const wheels = [];
     for (const [x, z, r] of [[-.7, .78, .2], [.7, .78, .2], [-.72, -.72, .25], [.72, -.72, .25]]) {
-      const wh = new THREE.Group(); wh.position.set(x, r, z); kg.add(wh);
+      const pv = new THREE.Group(), wh = new THREE.Group(); pv.position.set(x, r, z); pv.add(wh); kg.add(pv);
       wh.add(mesh(new THREE.CylinderGeometry(r, r, .26, 12), blk).rotateZ(Math.PI / 2), mesh(new THREE.BoxGeometry(.28, r * .9, .08), std('#cfcfd8', { metalness: .6, roughness: .3 })));
-      wheels.push({ wh, r });
+      wheels.push({ pv, wh, r, front: z > 0 });
     }
     const tail = [];
     for (const x of [-.3, .3]) { const m = new THREE.MeshBasicMaterial({ color: '#ff5050' }); tail.push(m); kg.add(mesh(new THREE.BoxGeometry(.16, .08, .04), m, x, .38, -.97)); }
     pl.group.add(kg);
-    const START = 1.6, END = kart.path.total - 1.2, VMAX = 10.5, park = () => setFrame(kg, kartFrame(START)); park();
-    let race = null, engine = null; const f = { p: V(), up: V(), fwd: V(), right: V() };
-    updaters.push((dt, t) => {
-      if (!race) return;
-      race.t += dt; const T = race.t, P = player;
-      if (race.phase === 'count') {
-        const k = Math.floor((T - .6) / .8);
-        if (k >= 0 && k > race.k && k < 4) { race.k = k; startGate.lamps.forEach((m, i) => m.color.set(k === 3 ? '#39ff6a' : i <= k ? '#ff2a2a' : '#401010'));
-          if (k < 3) { Sound.tone(440, .3, 'square', .07); whisper(['3...', '2...', '1...'][k], 700); } else { Sound.tone(880, .6, 'square', .08); whisper('GO!!', 1000); race.phase = 'go'; race.t0 = T; } }
-      }
-      if (race.phase === 'go' || race.phase === 'stop') {
-        const left = END - race.s, brake = race.v * race.v / (2 * 7);
-        if (race.phase === 'go' && left <= brake + .2) { race.phase = 'stop'; race.lap = T - race.t0; }
-        race.v = race.phase === 'stop' ? Math.max(0, Math.min(race.v, Math.sqrt(2 * 7 * Math.max(left, 0)))) : Math.min(VMAX, race.v + dt * (race.v < 6 ? 6 : 3));
-        race.s += race.v * dt;
-        engine && engine.set(race.v / VMAX, Math.sin(T * 31) * 3);
-        if (race.v > 4 && (race.dust -= dt) < 0) { race.dust = .05; kartFrame(race.s - 1.1, f); parts.emit(f.p.clone().add(pl.center).addScaledVector(f.up, .15), f.up.clone().multiplyScalar(R(.4, 1.2)).addScaledVector(f.fwd, -R(.5, 1.5)).add(rdir().multiplyScalar(.4)), choice(['#e8e2d0', '#d6cfbd', '#ffd23d']), R(.4, .8), R(.12, .22)); }
-        if (race.phase === 'stop' && race.v < .05) {
-          race.phase = 'done'; race.t = 0; engine && engine.stop(); engine = null;
-          const best = !pl.kartBest || race.lap < pl.kartBest; if (best) pl.kartBest = race.lap;
-          partyPopper(player.p.clone().addScaledVector(player.up, 1.4)); arp([523.3, 659.3, 784, 1046.5, 784, 1046.5], .1, 'square', .05, .35);
-          whisper(`FINISH! lap time ${race.lap.toFixed(1)} s` + (best ? ' · new best!' : ` · best ${pl.kartBest.toFixed(1)} s`), 3600);
-        }
-      }
-      kartFrame(race.s, f); setFrame(kg, f);
-      const bob = race.v > .5 ? Math.sin(T * 26) * .02 : 0; kg.position.addScaledVector(f.up, bob);
-      for (const w of wheels) w.wh.rotation.x += race.v * dt / w.r;
-      sw.rotation.z = Math.max(-.6, Math.min(.6, (race.turn || 0) * -.6));
-      tail.forEach(m => m.color.set(race.phase === 'stop' ? '#ff2020' : '#802020'));
-      if (race.phase === 'done' && race.t > 4.5) { // the kart pootles back to the start line while nobody's looking
-        race = null; startGate.lamps.forEach(m => m.color.set('#401010')); park(); Sound.sweep(500, 1400, .4, 'sine', .04);
-      }
+    // you drive it yourself: W/S or up/down for gas and brake (and reverse), A/D or left/right to steer, E to hop out early.
+    // drive the whole course (three hidden checkpoints) and the race ends the moment you roll through the FINISH gate
+    const START = 1.6, LIFT = .1, VMAX = 12, VGRASS = 6.5, park = () => setFrame(kg, kartFrame(START)); park();
+    const cps = [.27, .52, .77].map(f => kart.dirs[Math.floor(f * kart.dirs.length)]), cosCP = Math.cos(4.5 / pl.R), cosTrack = Math.cos((kart.w / 2 + .25) / pl.R);
+    const fin = { p: finishGate.f.p.clone().normalize().multiplyScalar(pl.R), fwd: finishGate.f.fwd.clone(), right: finishGate.f.right.clone() };
+    let race = null, engine = null;
+    const setKart = () => { const r = race; kg.position.copy(r.d).multiplyScalar(pl.R + LIFT + (r.v * r.v > .25 ? Math.sin(r.t * 26) * .02 : 0));
+      kg.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V().crossVectors(r.d, r.fwd).normalize(), r.d, r.fwd)); };
+    updaters.push(dt => {   // once you've hopped out, the kart pootles back to the start line while nobody's looking
+      if (!race || race.phase !== 'parked') return;
+      if ((race.t += dt) > 4.5) { race = null; park(); startGate.lamps.forEach(m => m.color.set('#401010')); Sound.sweep(500, 1400, .4, 'sine', .04); }
     });
     const it = addInteract(kg, 'Hop in the go-kart', () => {
       if (race) return;
-      const P = player; race = { t: 0, s: START, v: 0, k: -1, phase: 'count', dust: 0, turn: 0 };
+      const P = player, f0 = kartFrame(START);
+      race = { t: 0, phase: 'count', k: -1, d: f0.p.clone().normalize(), fwd: f0.fwd.clone(), v: 0, steer: 0, cp: new Set(), along: -1, warned: 0, dust: 0, lap: 0 };
       Sound.sweep(200, 520, .35, 'triangle', .06); engine = Sound.engine();
-      whisper('vroom vroom... watch the lights!', 1600);
-      const pf = { p: V(), up: V(), fwd: V(), right: V() }, ahead = V();
+      whisper('W / S: gas and brake · A / D: steer · E: hop out', 3000);
+      const tmpW = V(), up = V(), side = V();
+      const hopOut = msg => {
+        race.phase = 'parked'; race.t = 0; engine && engine.stop(); engine = null;
+        side.crossVectors(race.d, race.fwd).normalize();
+        P.p.copy(race.d).multiplyScalar(pl.R + .05).addScaledVector(side, 1.5).add(pl.center); P.up.copy(race.d); P.sit = false; P.squash = .8;
+        Sound.sweep(400, 800, .25, 'triangle', .05); msg && whisper(msg, 3000);
+      };
       hold = { step(dt) {
-        if (!race) { P.sit = false; return false; }
-        kartFrame(race.s, pf); kartFrame(race.s + 3, { p: ahead }); race.turn = ahead.sub(pf.p).normalize().dot(pf.right);
-        P.p.copy(pf.p).add(pl.center).addScaledVector(pf.up, -.22).addScaledVector(pf.fwd, -.15); P.up.copy(pf.up); P.vel.set(0, 0, 0); P.sit = true; P.grounded = true;
-        P.face.copy(pf.fwd); P.fwd.lerp(pf.fwd, 1 - Math.exp(-dt * 3)).normalize();
-        if (race.phase === 'done' && race.t > 1.1) { P.p.copy(pf.p).add(pl.center).addScaledVector(pf.right, -1.5).addScaledVector(pf.up, -(pf.p.length() - pl.R)); P.sit = false; P.squash = .8; Sound.sweep(400, 800, .25, 'triangle', .05); return false; }
+        const r = race; if (!r || r.phase === 'parked') { P.sit = false; return false; }
+        r.t += dt; yawIn = 0; jumpQueued = false;
+        if (r.phase === 'count') {
+          const k = Math.floor((r.t - .9) / .8);
+          if (k >= 0 && k > r.k && k < 4) { r.k = k; startGate.lamps.forEach((m, i) => m.color.set(k === 3 ? '#39ff6a' : i <= k ? '#ff2a2a' : '#401010'));
+            if (k < 3) { Sound.tone(440, .3, 'square', .07); whisper(['3...', '2...', '1...'][k], 700); } else { Sound.tone(880, .6, 'square', .08); whisper('GO!!', 1000); r.phase = 'drive'; r.t0 = r.t; } }
+        }
+        const drive = r.phase === 'drive';
+        const thr = drive ? (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0) - stick.dy : 0;
+        const st = drive ? (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0) - (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - stick.dx : 0;
+        let onTrack = false; for (const t of kart.dirs) if (t.dot(r.d) > cosTrack) { onTrack = true; break; }
+        const top = onTrack ? VMAX : VGRASS;
+        if (thr > .1) r.v += (r.v < 0 ? 16 : r.v < 6 ? 9 : 5) * dt;
+        else if (thr < -.1) r.v -= (r.v > 0 ? 16 : 6) * dt;
+        else r.v -= Math.sign(r.v) * Math.min(Math.abs(r.v), (onTrack ? 3 : 6) * dt);
+        if (r.phase === 'done') r.v -= Math.sign(r.v) * Math.min(Math.abs(r.v), 12 * dt);
+        if (r.v > top) r.v = Math.max(top, r.v - 12 * dt); if (r.v < -4) r.v = -4;
+        r.steer += (st - r.steer) * (1 - Math.exp(-dt * 8));
+        // steer about the local up, then roll along the planet's surface
+        up.copy(r.d); r.fwd.applyAxisAngle(up, r.steer * 2.1 * dt * Math.min(1, Math.abs(r.v) / 4) * Math.sign(r.v));
+        const axis = tmpW.crossVectors(r.d, r.fwd).normalize(), ang = r.v * dt / (pl.R + LIFT);
+        r.d.applyAxisAngle(axis, ang).normalize(); r.fwd.applyAxisAngle(axis, ang); r.fwd.addScaledVector(r.d, -r.fwd.dot(r.d)).normalize();
+        // bonk into trees, houses and gate posts
+        const wp = V().copy(r.d).multiplyScalar(pl.R + LIFT).add(pl.center);
+        for (const c of colliders) {
+          tmpW.subVectors(wp, c.pos); if (tmpW.lengthSq() > (c.r + 5) * (c.r + 5)) continue;
+          const h = tmpW.dot(r.d); if (h > c.h || h < -1) continue;
+          tmpW.addScaledVector(r.d, -h); const L = tmpW.length(), rr = c.r + .75;
+          if (L < rr && L > 1e-4) { wp.addScaledVector(tmpW, (rr - L) / L); r.d.copy(wp).sub(pl.center).normalize(); r.fwd.addScaledVector(r.d, -r.fwd.dot(r.d)).normalize();
+            if (Math.abs(r.v) > 2.5) { Sound.knock(0, .8); Sound.noise(.15, 500, 1, .2); } if (tmpW.dot(r.fwd) * r.v < 0) r.v *= -.25; }
+        }
+        // hidden checkpoints round the course
+        if (drive) cps.forEach((c, i) => { if (!r.cp.has(i) && c.dot(r.d) > cosCP) { r.cp.add(i); arp([784, 1046.5], .08, 'triangle', .07, .3); whisper(`checkpoint ${r.cp.size} / 3`, 1400); } });
+        // the FINISH gate: count the moment you roll through it going forwards
+        tmpW.copy(r.d).multiplyScalar(pl.R).sub(fin.p); const along = tmpW.dot(fin.fwd), lat = tmpW.dot(fin.right);
+        if (drive && r.along < 0 && along >= 0 && Math.abs(lat) < kart.w / 2 + .6 && Math.abs(along) < 2) {
+          if (r.cp.size === 3) {
+            r.phase = 'done'; r.lap = r.t - r.t0; r.tDone = r.t;
+            const best = !pl.kartBest || r.lap < pl.kartBest; if (best) pl.kartBest = r.lap;
+            partyPopper(P.p.clone().addScaledVector(P.up, 1.4)); arp([523.3, 659.3, 784, 1046.5, 784, 1046.5], .1, 'square', .05, .35);
+            whisper(`FINISH! lap time ${r.lap.toFixed(1)} s` + (best ? ' · new best!' : ` · best ${pl.kartBest.toFixed(1)} s`), 3600);
+          } else if (r.t - r.warned > 3) { r.warned = r.t; whisper(`drive the whole track first! checkpoints ${r.cp.size} / 3`, 2400); }
+        }
+        if (Math.abs(along) < 4) r.along = along; else r.along = -1;
+        // kart, wheels, dust, engine
+        setKart();
+        for (const w of wheels) { w.wh.rotation.x += r.v * dt / w.r; if (w.front) w.pv.rotation.y = r.steer * .45; }
+        sw.rotation.z = -r.steer * .6;
+        tail.forEach(m => m.color.set(thr < -.1 || r.phase === 'done' ? '#ff2020' : '#802020'));
+        engine && engine.set(Math.min(1, Math.abs(r.v) / VMAX), Math.sin(r.t * 31) * 3 + (thr > .1 ? 6 : 0));
+        if (Math.abs(r.v) > 3 && (r.dust -= dt) < 0) { r.dust = onTrack ? .06 : .03; const back = wp.clone().addScaledVector(r.fwd, -1.1).addScaledVector(r.d, .15);
+          parts.emit(back, r.d.clone().multiplyScalar(R(.4, 1.2)).addScaledVector(r.fwd, -R(.5, 1.5)).add(rdir().multiplyScalar(.4)), choice(onTrack ? ['#e8e2d0', '#d6cfbd', '#ffd23d'] : ['#5cc04a', '#8a5a34', '#a8d878']), R(.4, .8), R(.12, .22)); }
+        // you sit in the seat; the camera swings round behind the kart
+        P.p.copy(kg.position).add(pl.center).addScaledVector(r.d, -.22).addScaledVector(r.fwd, -.15); P.up.copy(r.d); P.vel.set(0, 0, 0); P.sit = true; P.grounded = true;
+        P.face.copy(r.fwd); P.fwd.lerp(r.fwd, 1 - Math.exp(-dt * 3)).addScaledVector(r.d, -P.fwd.dot(r.d)).normalize();
+        if (r.phase === 'done' && Math.abs(r.v) < .05 && r.t - r.tDone > .8) { hopOut(); return false; }
+        if (drive && r.t - r.t0 > .8 && keys.has('KeyE')) { hopOut('you hop out. the kart will be back at the START line'); return false; }
         return true; } };
     }, 2.6, .5);
     it.note = 'kart';

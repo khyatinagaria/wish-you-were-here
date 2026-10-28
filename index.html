@@ -3448,11 +3448,11 @@ function buildBloom(pl) {
   for (let i = 0; i < 8; i++) {
     const d0 = rdir(), tdir = V().crossVectors(d0, rdir()).normalize(), span = R(.3, .55), pts = [];
     for (let k = 0; k <= 14; k++) { const a = k / 14 * span; const d = d0.clone().multiplyScalar(Math.cos(a)).addScaledVector(tdir, Math.sin(a)).normalize(); pts.push(d.multiplyScalar(pl.R - .3 + Math.sin(k / 14 * Math.PI) * R(3, 4.5))); }
-    const curve = new THREE.CatmullRomCurve3(pts);
-    pl.group.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 48, .3, 7), vineMat));
+    const curve = new THREE.CatmullRomCurve3(pts), clear = pts.every(p => p.clone().normalize().angleTo(ll(-32, 155)) > .42);   // keep clear of the fairy tree
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, .3, 7), vineMat); if (clear) pl.group.add(tube);
     const twist = []; for (let k = 0; k <= 60; k++) { const u = k / 60, p = curve.getPoint(u), tn = curve.getTangent(u), n1 = V().crossVectors(tn, p.clone().normalize()).normalize(), n2 = V().crossVectors(tn, n1); twist.push(p.clone().addScaledVector(n1, Math.cos(u * 30) * .35).addScaledVector(n2, Math.sin(u * 30) * .35)); }
-    pl.group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(twist), 120, .08, 5), vineMat));
-    for (let k = 1; k < 7; k++) { const p = curve.getPoint(k / 7); pl.group.add(mesh(new THREE.SphereGeometry(.13, 8, 6), glow(choice(bulbCols), 2.8), p.x, p.y - .3, p.z)); }
+    if (clear) pl.group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(twist), 120, .08, 5), vineMat));
+    for (let k = 1; k < 7; k++) { const p = curve.getPoint(k / 7), b = mesh(new THREE.SphereGeometry(.13, 8, 6), glow(choice(bulbCols), 2.8), p.x, p.y - .3, p.z); if (clear) pl.group.add(b); }
   }
 
   // ---- waterfalls pouring off the edge of the world ----
@@ -3707,6 +3707,184 @@ function buildBloom(pl) {
       if (levT <= 0) whisper('the fairy dust wears off... back down you float', 2400);
     }
   });
+
+  // ---- Glimmerbough: a giant glowing tree that's home to a whole fairy colony ----
+  // little mushroom-roofed homes on its branches, floating fungus steps up to a balcony, and every fairy busy with something
+  { const treeD = at(-32, 155, .2); reserve(pl, treeD, .31, true);
+    const tree = placeFacing(pl, new THREE.Group(), treeD, 0, ll(-5, 150));
+    pl.group.updateMatrixWorld(true);
+    const L = (x, y, z) => tree.localToWorld(V(x, y, z));
+    const polar = (r, a, y) => V(Math.cos(a) * r, y, Math.sin(a) * r);
+    const bark = std('#5d3d63', { roughness: .9, emissive: '#2c1446', emissiveIntensity: .45 }), woodT = std('#9a6a3e', { roughness: .85, emissive: '#3a2008', emissiveIntensity: .2 });
+    const gl = (c, k = 2.4) => glow(c, k);
+    // trunk: a lathe, knobbly and gently twisted
+    { const prof = [[1.9, -.9], [1.4, 0], [1.15, 1], [1.0, 3], [.92, 5], [.82, 7], [.62, 9], [.38, 11], [.12, 12.2]].map(([r, y]) => new THREE.Vector2(r, y));
+      const geo = new THREE.LatheGeometry(prof, 28), P = geo.attributes.position, v = V();
+      for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const a = Math.atan2(v.z, v.x), r = Math.hypot(v.x, v.z) * (1 + .09 * Math.sin(a * 5 + v.y * 1.3) + .05 * Math.sin(a * 11 - v.y * 2)), tw = a + v.y * .14; P.setXYZ(i, Math.cos(tw) * r, v.y, Math.sin(tw) * r); }
+      geo.computeVertexNormals(); tree.add(new THREE.Mesh(geo, bark));
+      const helix = []; for (let k = 0; k <= 80; k++) { const u = k / 80, y = .3 + u * 10.5, rr = 1.2 - u * .75; helix.push(polar(rr + .08, u * Math.PI * 5.5, y)); }
+      tree.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(helix), 160, .07, 5), gl('#7affd8', 1.8)));
+      for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2 + .3, pts = [polar(.9, a, .9), polar(2, a + .15, .1), polar(3.1, a + .05, -.35), polar(4, a - .1, -.75)];
+        tree.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, .3 - k % 2 * .06, 6), bark)); }
+      // the colony's front door, down between the roots
+      tree.add(mesh(new THREE.CircleGeometry(.55, 20), std('#7a4a26', { roughness: .8 }), 0, .55, 1.42), mesh(new THREE.TorusGeometry(.56, .06, 6, 20), woodT, 0, .55, 1.43), mesh(new THREE.SphereGeometry(.05, 6, 4), gl('#ffe58a'), .3, .5, 1.47));
+      for (const [x, y] of [[-.55, 1.6], [.5, 2.3], [-.2, 3.4]]) tree.add(mesh(new THREE.CircleGeometry(.14, 12), gl('#ffd88a', 2), x, y, 1.08 + (y < 2 ? .06 : 0)).rotateY(x * .4)); }
+    // branches, with a little home at the end of most of them
+    const branches = [];
+    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2 + .25, rb = 4.2 + (k % 3) * .4, yb = 8.4 + (k % 2) * 1.3;
+      const pts = [polar(.4, a, 6.6 + (k % 2) * 1.1), polar(2.2, a + .1, yb - .4), polar(rb, a + .05, yb)], curve = new THREE.CatmullRomCurve3(pts);
+      tree.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 20, .24, 6), bark)); branches.push({ a, rb, yb, curve, tip: pts[2] }); }
+    // canopy: soft glowing leaf clouds
+    { const parts2 = [], dots = [];
+      for (let k = 0; k < 26; k++) { const a = k * 2.4, ring = k % 3, r = ring === 0 ? R(0, 2) : R(3, 5.6), y = 11.3 + (ring === 0 ? R(1.2, 2.2) : R(-1, 1.2)), s = R(1.5, 2.5);
+        parts2.push([new THREE.IcosahedronGeometry(s, 1), new THREE.Matrix4().compose(polar(r, a, y), new THREE.Quaternion(), V(1, .75, 1)), choice(['#3fd1a8', '#5cf0c0', '#2fb894', '#b48cff', '#ff9ad5', '#7ae0ff'])]);
+        for (let j = 0; j < 3; j++) dots.push([new THREE.SphereGeometry(.09, 6, 4), new THREE.Matrix4().makeTranslation(...polar(r + s * .9, a + R(-.4, .4), y + R(-.5, .8)).toArray()), choice(['#fff6b0', '#ffffff', '#ffc8f0', '#c8fff4'])]); }
+      tree.add(new THREE.Mesh(mergeGeos(parts2), std('#ffffff', { vertexColors: true, roughness: .6, emissive: '#1e7a64', emissiveIntensity: .55, flatShading: true })));
+      const dm = new THREE.Mesh(mergeGeos(dots), new THREE.MeshBasicMaterial({ vertexColors: true })); dm.material.color.multiplyScalar(2.2); tree.add(dm); }
+    // a fairy home: round little body, spotted mushroom roof, glowing window, round door
+    const roofCols = ['#ff9ad5', '#7ae0ff', '#b48cff', '#ffd23d', '#8affc8', '#ff8a6a'];
+    function home(col, s = 1) {
+      const h = new THREE.Group();
+      h.add(mesh(new THREE.CylinderGeometry(.42 * s, .48 * s, .7 * s, 14), std('#fff1dc', { emissive: '#ffcf9a', emissiveIntensity: .25 }), 0, .35 * s, 0));
+      const roof = mesh(new THREE.SphereGeometry(.68 * s, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), std(col, { emissive: col, emissiveIntensity: .55, roughness: .45 }), 0, .66 * s, 0); roof.scale.y = .75; h.add(roof);
+      for (let k = 0; k < 5; k++) { const a = k * 1.3, e = R(.35, .9); h.add(mesh(new THREE.SphereGeometry(.06 * s, 6, 4), gl('#ffffff', 1.6), Math.cos(a) * Math.sin(e) * .66 * s, .66 * s + Math.cos(e) * .5 * s, Math.sin(a) * Math.sin(e) * .66 * s)); }
+      h.add(mesh(new THREE.CircleGeometry(.17 * s, 14), std('#7a4a26'), 0, .2 * s, .47 * s), mesh(new THREE.CircleGeometry(.1 * s, 12), gl('#ffd88a', 2.2), .26 * s, .45 * s, .41 * s).rotateY(.5));
+      h.add(mesh(new THREE.CylinderGeometry(.05 * s, .06 * s, .3 * s, 6), std('#8a6e8e'), -.28 * s, 1.05 * s, -.1 * s));
+      return h;
+    }
+    const homeAt = (x, y, z, col, s, face = 0) => { const h = home(col, s); h.position.set(x, y, z); h.rotation.y = face; tree.add(h); return h; };
+    const homes = [];
+    branches.forEach((b, k) => { if (k === 5) return;
+      const p = b.tip.clone(); tree.add(mesh(new THREE.CylinderGeometry(.75, .6, .14, 12), woodT, p.x, p.y + .05, p.z));
+      homes.push(homeAt(p.x, p.y + .12, p.z, roofCols[k], 1, Math.PI / 2 - b.a)); });
+    // the balcony ring, reached by glowing fungus steps that float up round the trunk
+    const BY = 6.2, BR = 3.75;
+    { const ring = new THREE.LatheGeometry([[1.05, -.16], [BR, -.16], [BR, .04], [1.05, .04]].map(([r, y]) => new THREE.Vector2(r, y)), 40);
+      tree.add(mesh(ring, woodT, 0, BY, 0), mesh(new THREE.TorusGeometry(BR, .05, 6, 60), gl('#ffe58a', 1.6), 0, BY - .06, 0).rotateX(Math.PI / 2)); }
+    platforms.push({ pos: L(0, BY + .04, 0), n: treeD.clone(), r: BR, on: true });
+    let step0 = null;
+    const steps = 15, stepA = .22, a0 = Math.PI * .5 + .4, lastA = a0 - (steps - 1) * stepA;
+    for (let i = 0; i < steps; i++) { const a = a0 - i * stepA, y = .07 + i * .41, p = polar(4.5, a, y), col = choice(['#7affd8', '#ff9ad5', '#b48cff', '#7ae0ff']);
+      const st = mesh(new THREE.CylinderGeometry(.88, .66, .16, 12), std(col, { emissive: col, emissiveIntensity: .8, roughness: .4 }), p.x, y - .08, p.z); st.scale.z = .85; st.rotation.y = -a; tree.add(st);
+      tree.add(mesh(new THREE.SphereGeometry(.07, 6, 4), gl('#ffffff', 2), p.x, y - .2, p.z));
+      const pf = { pos: L(p.x, y, p.z), n: treeD.clone(), r: .86, on: true }; platforms.push(pf); if (!i) step0 = pf; }
+    for (let k = 0; k < 36; k++) { const a = k / 36 * Math.PI * 2; if (Math.abs(Math.atan2(Math.sin(a - lastA), Math.cos(a - lastA))) < .35) continue;   // a gap where the steps arrive
+      tree.add(mesh(new THREE.BoxGeometry(.06, .55, .06), woodT, Math.cos(a) * (BR - .08), BY + .3, Math.sin(a) * (BR - .08))); }
+    { const rail = []; for (let k = 0; k <= 60; k++) { const a = lastA + .35 + k / 60 * (Math.PI * 2 - .7); rail.push(polar(BR - .08, a, BY + .58)); }
+      tree.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rail), 90, .04, 5), woodT)); }
+    // balcony homes
+    [[lastA + 1.6, '#ffd23d'], [lastA + 3, '#ff9ad5'], [lastA + 4.5, '#7ae0ff']].forEach(([a, c]) => { const p = polar(2.75, a, BY + .04); const h = homeAt(p.x, p.y, p.z, c, 1.15, Math.PI / 2 - a + Math.PI); addCollider(h, V(), .6, 1.6); homes.push(h); });
+    // homes down among the roots
+    [[Math.PI * .5 + 1.3, '#b48cff'], [Math.PI * .5 - 1.4, '#8affc8']].forEach(([a, c]) => { const p = polar(2.2, a, -.2); const h = homeAt(p.x, p.y, p.z, c, 1.25, Math.PI / 2 - a + Math.PI); addCollider(h, V(), .65, 1.6); homes.push(h); });
+    addCollider(tree, V(0, -.5, 0), 1.35, 12.5);
+    // lanterns swaying under the branches
+    const lanterns = [];
+    branches.forEach((b, k) => { for (const u of [.45, .8]) { const p = b.curve.getPoint(u), lg = new THREE.Group(); lg.position.copy(p); tree.add(lg);
+      const len = R(.7, 1.3); lg.add(mesh(new THREE.CylinderGeometry(.01, .01, len, 4), std('#2a2a2a'), 0, -len / 2, 0)); const m = gl(choice(['#ffe58a', '#ffb0e0', '#a8fff0']), 2.2), bulb = mesh(new THREE.SphereGeometry(.13, 10, 8), m, 0, -len - .1, 0); lg.add(bulb);
+      lanterns.push({ lg, m, base: m.color.clone(), flare: 0, ph: R(0, 6), at: () => lg.localToWorld(V(0, -len - .1, 0)) }); } });
+    // ---- the fairies ----
+    function makeFairy(dress, hairC, s = 1) {
+      const g = new THREE.Group(), body = new THREE.Group(); g.add(body); g.scale.setScalar(s);
+      body.add(mesh(new THREE.ConeGeometry(.17, .38, 10), std(dress, { emissive: dress, emissiveIntensity: .7 }), 0, .19, 0), mesh(new THREE.SphereGeometry(.12, 12, 10), std('#ffe3cf', { emissive: '#ffb08a', emissiveIntensity: .3 }), 0, .47, 0));
+      body.add(mesh(new THREE.SphereGeometry(.135, 12, 8, 0, Math.PI * 2, 0, Math.PI * .6), std(hairC, { emissive: hairC, emissiveIntensity: .8 }), 0, .5, -.01));
+      body.add(mesh(new THREE.SphereGeometry(.38, 10, 8), new THREE.MeshBasicMaterial({ color: '#fff6c0', transparent: true, opacity: .16, blending: THREE.AdditiveBlending, depthWrite: false }), 0, .3, 0));
+      const wm = new THREE.MeshBasicMaterial({ color: '#c8fff4', transparent: true, opacity: .55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }), wings = [];
+      for (const sd of [-1, 1]) for (const [y, sc] of [[.36, 1], [.2, .7]]) { const pv = new THREE.Group(); pv.position.set(0, y, -.06); const w = mesh(new THREE.CircleGeometry(.24 * sc, 12), wm, sd * .22 * sc, .05, 0); w.scale.y = .6; pv.add(w); body.add(pv); wings.push({ pv, sd }); }
+      const hand = new THREE.Group(); hand.position.set(.17, .3, .08); body.add(hand);
+      tree.add(g); return { g, body, wings, hand, ph: R(0, 6) };
+    }
+    const prop = { broom: () => { const b = new THREE.Group(); b.add(mesh(new THREE.CylinderGeometry(.015, .015, .5, 5), woodT, 0, 0, 0), mesh(new THREE.ConeGeometry(.07, .16, 8), std('#e8c070'), 0, -.3, 0)); return b; },
+      can: () => { const c = new THREE.Group(); c.add(mesh(new THREE.CylinderGeometry(.07, .08, .12, 10), std('#7ae0ff', { metalness: .4, roughness: .3 })), mesh(new THREE.CylinderGeometry(.012, .018, .16, 5), std('#7ae0ff'), .1, .04, 0).rotateZ(-1)); return c; },
+      berry: () => mesh(new THREE.SphereGeometry(.08, 8, 6), gl('#ff5a8a', 2)), book: () => mesh(new THREE.BoxGeometry(.14, .1, .03), std('#ff7a5a', { emissive: '#ff3a2a', emissiveIntensity: .3 })),
+      spoon: () => mesh(new THREE.CylinderGeometry(.012, .012, .36, 5), woodT, 0, -.1, 0), wand: () => { const w = new THREE.Group(); w.add(mesh(new THREE.CylinderGeometry(.012, .012, .26, 5), std('#ffe58a'), 0, .13, 0), mesh(new THREE.OctahedronGeometry(.05), gl('#fff2a8', 3), 0, .28, 0)); return w; },
+      harp: () => { const h = new THREE.Group(); h.add(mesh(new THREE.TorusGeometry(.12, .015, 5, 12, Math.PI * 1.3), std('#ffd23d', { metalness: .6, roughness: .3 }))); for (let k = 0; k < 4; k++) h.add(mesh(new THREE.CylinderGeometry(.003, .003, .18 - k * .03, 3), gl('#ffffff', 1.5), -.06 + k * .04, -.01, 0)); return h; } };
+    const dresses = ['#f7b6ff', '#8affc8', '#ffd88a', '#a8c8ff', '#ff9ad5', '#c8a6ff', '#ffb08a', '#7ae0ff'], hairs = ['#8affe0', '#ffd23d', '#ff7ab8', '#b48cff', '#ffffff', '#ff9a5a'];
+    const F = (k, s = 1) => makeFairy(dresses[k % dresses.length], hairs[k % hairs.length], s);
+    const W = p => tree.localToWorld(p.clone());
+    const face = (f, dx, dz) => { if (dx * dx + dz * dz > 1e-6) f.g.rotation.y = Math.atan2(dx, dz); };
+    const crew = [];
+    // fliers looping round the canopy
+    for (let k = 0; k < 3; k++) { const f = F(k), r = 6.2 + k * .7, sp = .45 + k * .12, ym = 8 + k * 1.6;
+      crew.push({ f, step(t) { const a = t * sp + k * 2.1, p = polar(r, a, ym + Math.sin(t * 1.3 + k) * .7); f.g.position.copy(p); face(f, -Math.sin(a), Math.cos(a)); if (Math.random() < .25) parts.emit(W(p).addScaledVector(treeD, .2), treeD.clone().multiplyScalar(-.4), choice(['#fff2a8', '#c8fff4', '#ffc8f0']), R(.6, 1.1), R(.06, .12)); } }); }
+    // two dancing round each other above the balcony
+    for (let k = 0; k < 2; k++) { const f = F(3 + k), pw = prop.wand(); f.hand.add(pw);
+      crew.push({ f, step(t) { const c = polar(2.3, lastA + 2.3 + Math.sin(t * .2) * .4, BY + 1.5), a = t * 2.6 + k * Math.PI, p = c.clone().add(V(Math.cos(a) * .45, Math.sin(t * 5.2) * .12, Math.sin(a) * .45)); f.g.position.copy(p); face(f, -(p.x - c.x), -(p.z - c.z)); f.body.rotation.z = Math.sin(t * 2.6) * .25;
+        if (Math.random() < .3) parts.emit(W(p).addScaledVector(treeD, .3), rdir().multiplyScalar(.3), choice(['#ff9ad5', '#fff2a8', '#8affe0']), R(.5, 1), R(.05, .1)); } }); }
+    // sweeping the balcony
+    { const f = F(5), br = prop.broom(); f.hand.add(br); br.position.set(.04, -.1, .06);
+      crew.push({ f, step(t) { const a = lastA + 3.75 + Math.sin(t * .5) * .35, p = polar(1.75, a, BY + .06); f.g.position.copy(p); face(f, Math.sin(a) * Math.cos(t * .5), -Math.cos(a) * Math.cos(t * .5)); br.rotation.x = Math.sin(t * 7) * .55 + .4; f.body.rotation.x = .15; } }); }
+    // watering the flower pots on a branch home's porch
+    { const b = branches[0], p0 = b.tip.clone(), pot = new THREE.Group(), potP = polar(b.rb - .45, b.a + .2, b.yb + .12);
+      pot.position.copy(potP); tree.add(pot); pot.add(mesh(new THREE.CylinderGeometry(.13, .09, .16, 10), std('#c8744a'), 0, .08, 0)); for (let k = 0; k < 4; k++) pot.add(mesh(new THREE.SphereGeometry(.06, 6, 4), gl(choice(['#ff9ad5', '#ffd23d', '#7affd8']), 2), Math.cos(k * 1.6) * .07, .22 + k % 2 * .05, Math.sin(k * 1.6) * .07));
+      const f = F(6), can = prop.can(); f.hand.add(can);
+      crew.push({ f, step(t) { const p = potP.clone().add(V(0, .55 + Math.sin(t * 2) * .05, 0)).add(polar(.32, b.a + 1.2, 0)); f.g.position.copy(p); face(f, potP.x - p.x, potP.z - p.z); can.rotation.z = -.4 - Math.max(0, Math.sin(t * .9)) * .6;
+        if (Math.sin(t * .9) > .3 && Math.random() < .5) parts.emit(W(p.clone().lerp(potP, .5).add(V(0, .1, 0))), treeD.clone().multiplyScalar(-1.2), '#7ae0ff', .5, .05); } }); }
+    // swinging from a branch
+    { const b = branches[5], top = b.curve.getPoint(.7), sw = new THREE.Group(); sw.position.copy(top); tree.add(sw); const len = 1.8;
+      for (const z of [-.18, .18]) sw.add(mesh(new THREE.CylinderGeometry(.01, .01, len, 4), std('#e8d8b8'), 0, -len / 2, z)); sw.add(mesh(new THREE.BoxGeometry(.18, .04, .46), woodT, 0, -len, 0));
+      const f = F(7); sw.add(f.g); f.g.position.set(0, -len + .02, 0); f.g.rotation.y = Math.PI / 2; sw.rotation.y = -b.a;
+      crew.push({ f, swing: sw, step(t) { sw.rotation.z = Math.sin(t * 1.9) * .55; f.body.rotation.x = Math.cos(t * 1.9) * .2; } }); }
+    // reading in a leaf hammock
+    { const b = branches[1], top = b.curve.getPoint(.55), hm = new THREE.Group(); hm.position.copy(top).add(V(0, -.9, 0)); hm.rotation.y = -b.a; tree.add(hm);
+      const leaf = mesh(new THREE.SphereGeometry(.5, 14, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), std('#5cf0c0', { emissive: '#2fb894', emissiveIntensity: .6, side: THREE.DoubleSide })); leaf.scale.set(1.3, .35, .55); hm.add(leaf);
+      for (const x of [-.6, .6]) hm.add(mesh(new THREE.CylinderGeometry(.01, .01, .95, 4), std('#e8d8b8'), x, .45, 0));
+      const f = F(0); hm.add(f.g); f.g.position.set(.1, -.02, 0); f.g.rotation.set(0, 0, -Math.PI / 2 + .25); const bk = prop.book(); f.hand.add(bk); bk.position.set(-.05, .05, .1);
+      crew.push({ f, step(t) { hm.rotation.x = Math.sin(t * .9) * .12; } }); }
+    // lamplighter: flits from lantern to lantern, each one flares as she passes
+    { const f = F(1), pw = prop.wand(); f.hand.add(pw); let i = 0, from = V(), to = V(), u = 1;
+      crew.push({ f, step(t, dt) { if (u >= 1) { i = (i + 1 + Math.floor(Math.random() * 3)) % lanterns.length; from.copy(f.g.position); to.copy(tree.worldToLocal(lanterns[i].at())).add(V(.25, .2, 0)); u = 0; }
+        u = Math.min(1, u + dt / 2.2); const e = u * u * (3 - 2 * u); f.g.position.lerpVectors(from, to, e).add(V(0, Math.sin(e * Math.PI) * .8, 0)); face(f, to.x - from.x, to.z - from.z);
+        if (u >= 1) { lanterns[i].flare = 1; } } }); }
+    // courier carrying glowing berries between the homes
+    { const f = F(2), berry = prop.berry(); f.hand.add(berry); const stops = homes.slice(0, 5).map(h => h.position.clone().add(V(0, 1.4, 0))); let i = 0, from = V(), to = V(), u = 1.4;
+      crew.push({ f, step(t, dt) { if (u >= 1.4) { from.copy(stops[i]); i = (i + 1) % stops.length; to.copy(stops[i]); u = 0; } u += dt / 3; const e = Math.min(1, u); const k = e * e * (3 - 2 * e);
+        f.g.position.lerpVectors(from, to, k).add(V(0, Math.sin(k * Math.PI) * 1.2, 0)); if (u < 1) face(f, to.x - from.x, to.z - from.z); } }); }
+    // a musician on a branch with a tiny harp (you can hear her up close)
+    { const b = branches[2], p = b.curve.getPoint(.45).add(V(0, .26, 0)), f = F(4), hp = prop.harp(); f.hand.add(hp); hp.position.set(-.1, 0, .08); f.g.position.copy(p); f.g.rotation.y = Math.PI / 2 - b.a; f.body.position.y = -.1;
+      let next = 0; const notes = [523.3, 587.3, 659.3, 784, 880, 1046.5];
+      crew.push({ f, step(t) { hp.rotation.z = Math.sin(t * 3) * .1;
+        if (t > next) { next = t + R(.5, 1.1); parts.emit(W(p).addScaledVector(treeD, .6), treeD.clone().multiplyScalar(.6).add(rdir().multiplyScalar(.2)), choice(['#fff2a8', '#ff9ad5', '#8affe0']), 1.4, .09);
+          if (mode === 'play' && player.p.distanceTo(W(p)) < 9) Sound.tone(choice(notes) * (Math.random() < .3 ? 2 : 1), 1.1, 'triangle', .035); } } }); }
+    // napping in a flower
+    { const b = branches[4], p = b.curve.getPoint(.4).add(V(0, .22, 0)), fl = new THREE.Group(); fl.position.copy(p); tree.add(fl);
+      for (let k = 0; k < 6; k++) { const pt = mesh(new THREE.SphereGeometry(.2, 8, 6), std('#ffb0e0', { emissive: '#ff7ab8', emissiveIntensity: .6 }), Math.cos(k) * .17, .08, Math.sin(k) * .17); pt.scale.set(1, .35, .6); pt.rotation.y = -k; fl.add(pt); }
+      const f = F(5, .9); fl.add(f.g); f.g.position.set(0, .05, 0); f.g.rotation.set(-1.2, 0, 0);
+      let next = 0; crew.push({ f, step(t) { f.body.scale.y = 1 + Math.sin(t * 1.6) * .05; if (t > next) { next = t + 1.1; parts.emit(W(p).addScaledVector(treeD, .4), treeD.clone().multiplyScalar(.4).add(V(.1, 0, 0)), '#ffffff', 2, .07); } } }); }
+    // cooking a glowing soup outside a root home
+    { const cp = polar(2.6, Math.PI * .5 + .45, -.35), cg = new THREE.Group(); cg.position.copy(cp); tree.add(cg);
+      const pot = mesh(new THREE.SphereGeometry(.28, 12, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), std('#2a2438', { metalness: .5, roughness: .4, side: THREE.DoubleSide }), 0, .3, 0); cg.add(pot);
+      cg.add(mesh(new THREE.CircleGeometry(.26, 14), gl('#7aff9a', 1.8), 0, .28, 0).rotateX(-Math.PI / 2)); for (let k = 0; k < 3; k++) cg.add(mesh(new THREE.CylinderGeometry(.02, .02, .35, 4), woodT, Math.cos(k * 2.1) * .2, .14, Math.sin(k * 2.1) * .2));
+      const f = F(3), sp = prop.spoon(); f.hand.add(sp);
+      crew.push({ f, step(t) { const a = t * 2.4; f.g.position.copy(cp).add(V(Math.cos(a) * .05 - .42, .45 + Math.sin(t * 3) * .04, Math.sin(a) * .05)); face(f, 1, 0); sp.rotation.z = Math.sin(a) * .5; sp.rotation.x = Math.cos(a) * .5;
+        if (Math.random() < .2) parts.emit(W(cp.clone().add(V(R(-.15, .15), .35, R(-.15, .15)))), treeD.clone().multiplyScalar(R(.3, .8)), choice(['#7aff9a', '#c8ffd0', '#ffffff']), R(.6, 1.2), R(.05, .1)); } }); }
+    // a gardener sprinkling glow onto the root mushrooms
+    { const f = F(6), pw = prop.wand(); f.hand.add(pw); const shrooms = [];
+      for (let k = 0; k < 6; k++) { const p = polar(3.3 + R(-.2, .3), Math.PI * .5 - .5 + k * .22, -.5), sh = new THREE.Group(); sh.position.copy(p); tree.add(sh);
+        sh.add(mesh(new THREE.CylinderGeometry(.04, .05, .2, 6), std('#f2ead8'), 0, .1, 0)); const cm = std('#7ae0ff', { emissive: '#7ae0ff', emissiveIntensity: .5 }); const c = mesh(new THREE.SphereGeometry(.13, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), cm, 0, .18, 0); c.scale.y = .7; sh.add(c); shrooms.push({ p, cm }); }
+      crew.push({ f, step(t) { const u = (Math.sin(t * .35) + 1) / 2, k = Math.min(5, Math.floor(u * 6)), p = shrooms[0].p.clone().lerp(shrooms[5].p, u).add(V(0, .9 + Math.sin(t * 2) * .1, 0));
+        f.g.position.copy(p); face(f, Math.cos(t * .35), 0); shrooms.forEach((s, j) => s.cm.emissiveIntensity += ((j === k ? 2.2 : .5) - s.cm.emissiveIntensity) * .05);
+        if (Math.random() < .3) parts.emit(W(p.clone().add(V(.15, .1, 0))), treeD.clone().multiplyScalar(-.8), choice(['#fff2a8', '#7ae0ff']), .8, .06); } }); }
+    // everyone: wings flutter, a gentle bob, and a happy wave when you say hello
+    let cheer = 0;
+    updaters.push((dt, t) => {
+      cheer = Math.max(0, cheer - dt);
+      for (const c of crew) { c.step(t, dt); for (const w of c.f.wings) w.pv.rotation.y = w.sd * (.3 + Math.sin(t * 30 + c.f.ph) * .55);
+        if (!c.swing) c.f.body.position.y = (c.f.body.position.y * .9) + .1 * (Math.sin(t * 3 + c.f.ph) * .05 + (cheer > 0 ? Math.abs(Math.sin(t * 9 + c.f.ph)) * .35 : 0));
+        if (cheer > 0) c.f.body.rotation.y = Math.sin(t * 6 + c.f.ph) * .6; else c.f.body.rotation.y *= .9; }
+      for (const l of lanterns) { l.flare = Math.max(0, l.flare - dt * .6); l.lg.rotation.z = Math.sin(t * 1.1 + l.ph) * .08; l.lg.rotation.x = Math.cos(t * .9 + l.ph) * .06; l.m.color.copy(l.base).multiplyScalar(2.2 + l.flare * 2.5 + cheer * 1.5); }
+      // walking into the lowest step hops you up onto it (the rest you can just walk up)
+      if (mode === 'play' && player.grounded && !player.onPlat && !hold && !ride) { const P = player, rel = P.p.clone().sub(step0.pos), h = rel.dot(step0.n); rel.addScaledVector(step0.n, -h);
+        if (rel.lengthSq() < .6 * .6 && h < 0 && h > -1) P.p.addScaledVector(step0.n, -h + .01); }
+      if (!pl.treetop && mode === 'play' && player.onPlat && player.onPlat.r === BR) { pl.treetop = 1; whisper('welcome to the fairy balcony! mind the edge', 2800); arp([659.3, 784, 1046.5], .09, 'sine', .07, .8); }
+    });
+    addInteract(tree, 'Say hello to the fairy colony', () => {
+      cheer = 3.2; arp([523.3, 659.3, 784, 1046.5, 1318.5], .07, 'triangle', .06, .9); voice(14, 2.4); voice(8, 2.8, .4);
+      for (const c of crew) parts.emit(W(c.f.g.position).addScaledVector(treeD, .3), treeD.clone().multiplyScalar(1.2).add(rdir().multiplyScalar(.8)), choice(['#fff2a8', '#ff9ad5', '#8affe0', '#ffffff']), R(1, 1.8), R(.08, .16));
+      whisper(choice(['the whole colony waves back! "welcome to Glimmerbough!"', 'tiny voices: "climb the glowing steps and visit us!"', '"shh, Pip is napping in the flower..."', '"have you tried the soup? it glows!"']), 3400);
+    }, 3.4, 1).note = 'colony';
+    mark('Glimmerbough, the fairy tree', treeD, null);
+    note('colony', 'Say hello to the fairy colony'); note('treetop', 'Climb up to the fairy balcony');
+    pl.counters.treetop = [() => pl.treetop || 0, 1]; }
 
   // ---- pollen garden: giant glowing flowers ----
   const flowerSpots = [[-22, 55], [-15, 64], [-29, 64], [-17, 45], [-29, 47]];

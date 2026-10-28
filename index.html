@@ -126,6 +126,56 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
 @keyframes medal{to{filter:hue-rotate(360deg)}}
 #badge b{font-family:var(--f-pixel);font-weight:400;font-size:24px;letter-spacing:.2em;text-transform:uppercase;color:#fff0fb;text-shadow:0 0 12px rgba(255,154,213,.9)}
 #badge i{font-family:var(--f-dream);font-size:22px;color:#ffd6f2}
+#ttt{z-index:12;background:rgba(4,22,12,.5)}
+.tttcard{background:linear-gradient(160deg,#123a2a,#081a14);box-shadow:0 0 0 1px rgba(141,255,176,.4),0 0 46px rgba(141,255,176,.3)}
+.tttcard h2{font-family:var(--f-dream);font-style:italic;font-weight:400;font-size:clamp(30px,3.8vw,44px);margin:0;color:#eafff0;text-shadow:0 0 18px rgba(141,255,176,.8)}
+.tttcard .eyebrow{color:#8dffb0}
+#ttt-grid{display:grid;grid-template-columns:repeat(3,84px);gap:8px}
+#ttt-grid button{width:84px;height:84px;font-family:var(--f-pixel);font-size:52px;line-height:1;border-radius:14px;border:2px solid rgba(141,255,176,.45);background:rgba(0,0,0,.3);color:#fff;cursor:pointer;padding:0}
+#ttt-grid button:not(:disabled):hover{border-color:#ff9ad5;background:rgba(255,154,213,.12)}
+#ttt-grid button:disabled{cursor:default}
+#ttt-grid button.x{color:#ff9ad5;text-shadow:0 0 12px rgba(255,154,213,.8)}
+#ttt-grid button.o{color:#8dffb0;text-shadow:0 0 12px rgba(141,255,176,.8)}
+#ttt-grid button.win{background:rgba(255,210,61,.25);border-color:#ffd23d}
+#pz{z-index:12;background:rgba(30,12,24,.45)}
+.pzcard{width:min(1000px,100%);box-sizing:border-box;padding:18px 20px 16px;border-radius:22px;color:#5a3a2a;background:repeating-linear-gradient(90deg,#fff6ea 0 46px,#fff0e0 46px 92px);box-shadow:0 0 0 5px #ffb3c7,0 18px 50px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:12px}
+.pz-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pzcard .eyebrow{color:#d0476a}
+.pz-close{font-family:var(--f-pixel);font-size:20px;padding:4px 16px;border-radius:999px;border:2px solid #d9a58f;background:#fff;color:#8a4a3a;cursor:pointer}
+.pz-close:hover{background:#ffe1e8}
+.pz-main{display:grid;grid-template-columns:220px 1fr 276px;gap:16px;align-items:start}
+.pz-ticket{background:#fffdf7;border-radius:6px;padding:14px 14px 12px;box-shadow:0 3px 0 #e6d6c2,0 0 0 1px #eaddca;font-family:var(--f-pixel);display:flex;flex-direction:column;gap:10px;transform:rotate(-1.5deg)}
+.pz-ticket b{font-size:24px;letter-spacing:.14em;color:#d0476a;font-weight:400}
+.pz-ticket ul{list-style:none;margin:0;padding:0;font-size:21px;line-height:1.25;display:flex;flex-direction:column;gap:6px}
+.pz-ticket li.ok{color:#3f9a54}
+.pz-ticket li.ok::after{content:' ✓'}
+.pz-tray{border-top:2px dashed #e6d6c2;padding-top:8px;min-height:78px}
+.pz-tray small{font-size:17px;color:#a07a62}
+#pz-tray{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#pz-tray .mini{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#ffb83d 0 55%,#e0a050 56%);box-shadow:inset 0 0 0 2px #c98838}
+#pz-tray button{width:24px;height:36px;border-radius:6px;border:0;background:linear-gradient(#e8463a 0 22%,#fff 22% 30%,#e8463a 30%);box-shadow:inset 0 0 0 2px #b8302a;cursor:pointer;padding:0}
+#pz-serve{width:100%;font-size:24px;background:#ff6f91;border-color:#ff6f91;color:#fff}
+#pz-serve:hover{background:#d0476a;border-color:#d0476a}
+.pz-board{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
+#pz-svg{width:min(290px,100%);aspect-ratio:1;display:block}
+.pz-pin{position:absolute;left:50%;top:44%;width:300px;height:30px;margin:-15px 0 0 -150px;border-radius:15px;background:linear-gradient(90deg,#8a5a34 0 13%,#e9c89a 13% 87%,#8a5a34 87%);box-shadow:0 6px 10px rgba(0,0,0,.25);opacity:0;pointer-events:none}
+.pz-pin.go{animation:pzroll .55s ease-in-out}
+@keyframes pzroll{0%{opacity:1;transform:translateY(-110px)}50%{transform:translateY(90px)}100%{opacity:1;transform:translateY(-40px)}}
+#pz-oven{position:absolute;inset:0 0 40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;border-radius:50% 50% 24px 24px;background:radial-gradient(ellipse at 50% 70%,#ff9a3d,#b8402a 55%,#5a2a20);box-shadow:inset 0 0 0 10px #8a4a3a;color:#fff6e0;font-family:var(--f-pixel);font-size:24px}
+#pz-oven[hidden]{display:none}
+.pz-bar{width:60%;height:14px;border-radius:7px;background:rgba(0,0,0,.35);overflow:hidden}
+.pz-bar i{display:block;height:100%;width:0;background:#ffd23d;transition:width .2s linear}
+#pz-step{margin:0;color:#8a5a44;font-size:20px;text-align:center;min-height:2.6em}
+#pz-step.bad{color:#d0476a}
+.pz-bins{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pz-bins button{height:84px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(#e4e8f0,#c9cfdc);box-shadow:inset 0 -5px 0 #a9b0c2,0 2px 0 #8d93a6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;color:#4a3a4a;font-family:var(--f-pixel);font-size:17px}
+.pz-bins button:hover{background:linear-gradient(#fff,#dde2ec)}
+.pz-bins button:disabled{opacity:.45;cursor:default}
+.pz-bins .ic{font-size:32px;line-height:1;height:36px;display:flex;align-items:center}
+.pz-bins .dough{width:34px;height:26px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff8e6,#efd6a6);box-shadow:inset 0 -3px 0 #d9b97e}
+.pz-bins .pinic{width:40px;height:10px;border-radius:5px;background:linear-gradient(90deg,#8a5a34 0 18%,#e9c89a 18% 82%,#8a5a34 82%)}
+.pz-bins .oven{background:linear-gradient(#ffd1a8,#ffad7a);box-shadow:inset 0 -5px 0 #e0855a,0 2px 0 #b8603a}
+.pz-bins .coke{background:linear-gradient(#ffd6d6,#ffb3b3);box-shadow:inset 0 -5px 0 #e08a8a,0 2px 0 #b86060}
 @media (max-width:760px){.book{grid-template-columns:1fr}.page.right{border-left:0;border-top:2px dashed rgba(91,67,128,.28)}}
 @media (max-width:700px){#tl{top:calc(60px + env(safe-area-inset-top,0px))}#help{display:none}#where span{font-size:21px}.pill{font-size:18px}#prompt{bottom:calc(36% + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#whisper,#toast,.screen,#flash{transition:none}}
@@ -205,6 +255,31 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
     <input id="name-in" maxlength="90" autocomplete="off" spellcheck="false" placeholder="type your name" aria-label="Your name, 1 to 10 words">
     <p class="keys" id="name-hint">1 to 10 words · enter to project · esc to cancel</p>
     <div class="row"><button id="btn-name" class="big">project it</button><button id="btn-name-x" class="big ghost">cancel</button></div>
+  </div>
+</div>
+
+<div id="ttt" class="screen gone" aria-hidden="true">
+  <div class="card namecard tttcard">
+    <div class="eyebrow">an alien at the door</div>
+    <h2 id="ttt-title">Tic-tac-toe, earthling?</h2>
+    <div id="ttt-grid" role="group" aria-label="tic-tac-toe board"></div>
+    <p class="keys" id="ttt-hint">you're ✕ and you go first</p>
+    <div class="row"><button id="btn-ttt-again" class="big" hidden>play again</button><button id="btn-ttt-x" class="big ghost">walk away</button></div>
+  </div>
+</div>
+
+<div id="pz" class="screen gone" aria-hidden="true">
+  <div class="pzcard">
+    <div class="pz-top"><div class="eyebrow">pizza planet · an order from outer space</div><button id="pz-x" class="pz-close">close shop</button></div>
+    <div class="pz-main">
+      <div class="pz-ticket"><b id="pz-num">ORDER</b><ul id="pz-order"></ul>
+        <div class="pz-tray"><small>ready to serve</small><div id="pz-tray"></div></div>
+        <button id="pz-serve" class="big">serve order</button></div>
+      <div class="pz-board"><svg id="pz-svg" viewBox="-140 -140 280 280" role="img" aria-label="the pizza you're making"></svg><div class="pz-pin" id="pz-pin"></div>
+        <div id="pz-oven" hidden><span>in the oven...</span><div class="pz-bar"><i id="pz-bar"></i></div><span id="pz-oventxt">5</span></div>
+        <p id="pz-step" class="keys"></p></div>
+      <div class="pz-bins" id="pz-bins"></div>
+    </div>
   </div>
 </div>
 
@@ -719,7 +794,7 @@ function makeFlower(petal, center, h) {
   const pm = std(petal, { emissive: petal, emissiveIntensity: .28, roughness: .55 });
   for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2, p = mesh(new THREE.SphereGeometry(.55, 16, 12), pm, Math.cos(a) * .62, 0, Math.sin(a) * .62); p.scale.set(1, .3, .64); p.rotation.y = -a; head.add(p); }
   const c = mesh(new THREE.SphereGeometry(.34, 16, 12), std(center, { emissive: center, emissiveIntensity: .5, roughness: .5 }), 0, .08, 0); c.scale.y = .6; head.add(c);
-  g.userData.head = head; return g;
+  Object.assign(g.userData, { head, pm, petal }); return g;
 }
 function makeCottage(wall, roof) {
   const g = new THREE.Group(), winM = glow('#ffd98a', 2.0);
@@ -743,6 +818,22 @@ function makeCottage(wall, roof) {
   const lamp = glow('#ffe7b0', 3);
   g.add(mesh(new THREE.SphereGeometry(.09, 8, 6), lamp, .45, 1.05, 1.2));
   Object.assign(g.userData, { win: winM, lamp, door, inside, eyes, warm }); return g;
+}
+function makeAlien() {
+  const g = new THREE.Group(), skin = std('#8dff9a', { emissive: '#2fd070', emissiveIntensity: .35, roughness: .5 }), black = std('#0b0b14', { roughness: .15, metalness: .3 });
+  g.add(mesh(new THREE.CapsuleGeometry(.17, .3, 4, 10), skin, 0, .42, 0));
+  for (const s of [-1, 1]) g.add(mesh(new THREE.CapsuleGeometry(.06, .22, 4, 8), skin, s * .09, .12, 0));
+  const head = new THREE.Group(); head.position.y = .95; g.add(head);
+  const skull = mesh(new THREE.SphereGeometry(.3, 20, 16), skin); skull.scale.set(1, 1.12, .92); head.add(skull);
+  for (const s of [-1, 1]) {
+    const e = mesh(new THREE.SphereGeometry(.1, 14, 10), black, s * .12, .02, .24); e.scale.set(1.35, .75, .5); e.rotation.z = -s * .45; head.add(e);
+    head.add(mesh(new THREE.SphereGeometry(.022, 6, 4), glow('#ffffff', 2), s * .1, .06, .29));
+    const a = mesh(new THREE.CylinderGeometry(.015, .015, .32, 5), skin, s * .1, .38, 0); a.rotation.z = -s * .35; head.add(a);
+    head.add(mesh(new THREE.SphereGeometry(.05, 8, 6), glow('#d6ff6a', 2.4), s * .16, .53, 0));
+  }
+  const arms = [];
+  for (const s of [-1, 1]) { const sh = new THREE.Group(); sh.position.set(s * .2, .58, 0); g.add(sh); sh.add(mesh(new THREE.CapsuleGeometry(.045, .26, 4, 8), skin, 0, -.17, 0)); arms.push(sh); }
+  g.userData = { head, armL: arms[0], armR: arms[1] }; return g;
 }
 function makeGear(r, n, c) {
   const g = new THREE.Group(), m = std(c, { metalness: .6, roughness: .35, emissive: c, emissiveIntensity: .2 });
@@ -1073,12 +1164,24 @@ function buildCloud(pl) {
 
   // ---- giant flower meadow ----
   const fl = [[-25, -112], [-19, -122], [-31, -104], [-16, -104], [-30, -124], [-22, -98]];
+  let goldT = 0; const gold = new THREE.Color('#ffc93d'), fp = V();   // smelling one flower makes the whole meadow spin slowly and shimmer gold
+  updaters.push((dt, t, rdt) => { if (goldT > 0) goldT -= rdt; });
   fl.forEach(([la, lo], i) => {
     const f = place(pl, makeFlower(['#ffb3e0', '#fff4fb', '#d8b4ff', '#ffc9e8', '#ffffff', '#e8c4ff'][i], i % 2 ? '#fff07a' : '#ffd96b', R(1.6, 2.8)), at(la, lo, .04));
     addCollider(f, V(), .35, 3);
     let sway = 99;
-    updaters.push((dt, t) => { sway += dt; f.userData.head.rotation.y += dt * (sway < 2 ? 3 : .1); f.userData.head.rotation.z = Math.sin(t * .9 + i) * .08; });
-    if (i < 3) addInteract(f, 'Smell the giant flower', () => { sway = 0; arp([659.3, 830.6, 987.8], .1, 'sine', .1, 1); whisper(choice(['it smells like crayons and rain', 'it smells like the first day of summer break', 'achoo.'])); }, 2.6).note = 'flower';
+    const u = f.userData, base = new THREE.Color(u.petal);
+    updaters.push((dt, t) => {
+      sway += dt; u.head.rotation.y += dt * (sway < 2 ? 3 : .1); u.head.rotation.z = Math.sin(t * .9 + i) * .08;
+      const env = goldT > 0 ? Math.min(1, (5 - goldT) * 2, goldT * 1.5) : 0;
+      if (env > 0 || u.gold) {
+        u.gold = env > 0; f.rotation.y += dt * 1.1 * env; u.head.rotation.y += dt * 1.6 * env;
+        const shim = .5 + .5 * Math.sin(t * 9 + i * 1.7);
+        u.pm.emissive.copy(base).lerp(gold, env); u.pm.emissiveIntensity = .28 + env * (.6 + shim * .7);
+        if (env > 0 && Math.random() < dt * 14) { u.head.getWorldPosition(fp); parts.emit(fp.clone().add(rdir().multiplyScalar(R(.4, 1.1))), rdir().multiplyScalar(.5).add(f.position.clone().normalize().multiplyScalar(R(.6, 1.4))), choice(['#ffd23d', '#fff1a8', '#ffffff', '#ffc93d']), R(1, 1.8), R(.25, .45)); }
+      }
+    });
+    if (i < 3) addInteract(f, 'Smell the giant flower', () => { sway = 0; goldT = 5; arp([1046.5, 1318.5, 1568, 2093, 2637], .11, 'sine', .04, 1.4); arp([659.3, 830.6, 987.8], .1, 'sine', .1, 1); whisper(choice(['it smells like crayons and rain', 'it smells like the first day of summer break', 'achoo.'])); }, 2.6).note = 'flower';
   });
   mark('Giant Flower Meadow', ll(-24, -112), 'flower'); note('flower', 'Smell a giant flower');
 
@@ -2193,11 +2296,11 @@ function buildPixel(pl) {
     landmarks: [], paths: [], notes: [] };
   const mark = (name, d, kind, hide) => pl.map.landmarks.push({ name, d: d.clone().normalize(), kind, hide });
   const note = (key, label) => pl.map.notes.push({ key, label });
-  pl.coins = 0; pl.gems = 0; pl.crates = 0; pl.bounces = 0; pl.sky = 0; pl.flags = new Set(); pl.key = false; pl.bossOpen = false;
+  pl.coins = 0; pl.gems = 0; pl.crates = 0; pl.bounces = 0; pl.sky = 0; pl.flags = new Set(); pl.key = false; pl.bossOpen = false; pl.pizzas = 0;
   // soundtrack: "Agitations tropicales" by L'Impératrice (karaoke version), chosen by Khyati
   planetSong(pl, 'audio/world-1-1.mp3', .24, "♪ Agitations tropicales · L'Impératrice");
-  pl.counters = { bounce: [() => pl.bounces, 1], coins: [() => pl.coins, 30], gems: [() => pl.gems, 5], crates: [() => pl.crates, 3], flags: [() => pl.flags.size, 3], sky: [() => pl.sky, 1], boss: [() => pl.bossOpen ? 1 : 0, 1] };
-  pl.map.inventory = () => "in your Explorer's Pack: Map-Book · Scan-Glasses · Pix-Net" + (pl.key ? ' · Boss Key' : '') + (pl.gems ? ` · Gem jar (${pl.gems})` : '');
+  pl.counters = { bounce: [() => pl.bounces, 1], coins: [() => pl.coins, 30], gems: [() => pl.gems, 5], crates: [() => pl.crates, 3], flags: [() => pl.flags.size, 3], sky: [() => pl.sky, 1], pizza: [() => pl.pizzas, 5], party: [() => pl.party || 0, 1], alien: [() => pl.crown || 0, 1] };
+  pl.map.inventory = () => "in your Explorer's Pack: Map-Book · Scan-Glasses · Pix-Net" + (pl.key ? ' · Golden Pizza Cutter' : '') + (pl.gems ? ` · Gem jar (${pl.gems})` : '');
   note('bounce', 'Bounce on a bouncy pad (hold jump!)');
   note('coins', 'Collect floating coins');
   note('gems', 'Find the hidden gems');
@@ -2206,10 +2309,14 @@ function buildPixel(pl) {
   note('flags', 'Rest at checkpoint flags');
   note('sky', 'Climb the rainbow stairs');
   note('chest', 'Open the Sky Island chest');
-  note('boss', 'Use the Boss Key down below');
+  note('pizza', 'Serve 5 pizza orders to the aliens');
   note('falls', 'Dip your toes in the pool');
   note('tune', 'Get a song from the Tune-Man');
   note('door', 'Find the secret zone');
+  note('party', 'Bonk a ? box for a party');
+  note('shroom', 'Take a bite of a mushroom');
+  note('alien', 'Beat the alien at tic-tac-toe');
+  note('castle', 'Zoom down the bounce castle slide');
 
   // ---- grass-block ground: a checker of pixel tiles that fades into a pale liminal lawn underneath ----
   const groundU = { uG1: { value: new THREE.Color('#5cc04a') }, uG2: { value: new THREE.Color('#4daa3d') }, uL1: { value: new THREE.Color('#a9b07c') }, uL2: { value: new THREE.Color('#9aa271') }, uF1: { value: new THREE.Color('#ffd23d') }, uF2: { value: new THREE.Color('#ff8fd0') } };
@@ -2355,6 +2462,7 @@ function buildPixel(pl) {
     put(g, p, x, z);
     const local = ground(g, x, z, .5); plat(local, .8);
     const o = { pos: pl.center.clone().add(local), n: local.clone().normalize(), r: .85, top, spring, sq: 0, d: local.clone().normalize() };
+    addInteract(p, 'Press SPACE to jump on · hold it for a mega bounce', () => { jumpQueued = true; }, 2.3, .6).key = 'SPACE';
     pads.push(o); return o;
   }
   const p1 = pad(patch(at(68, 10, .06), spawnD), 0, 0);
@@ -2381,18 +2489,18 @@ function buildPixel(pl) {
     lid.add(mesh(new THREE.BoxGeometry(1.1, .3, .75), cm, 0, .15, .37), mesh(new THREE.BoxGeometry(1.14, .06, .79), gold, 0, .32, .37));
     put(skyIs.g, chest, 0, .4, skyTop, Math.PI);
   }
-  const keyM = new THREE.Group(); {
+  const keyM = new THREE.Group(); {   // the golden pizza cutter
     const gold = std('#ffd23d', { metalness: .7, roughness: .25, emissive: '#ffae00', emissiveIntensity: 1.2 });
-    keyM.add(mesh(new THREE.TorusGeometry(.18, .06, 6, 12), gold, 0, .32, 0), mesh(new THREE.BoxGeometry(.07, .5, .07), gold, 0, 0, 0), mesh(new THREE.BoxGeometry(.18, .07, .07), gold, .1, -.18, 0), mesh(new THREE.BoxGeometry(.14, .07, .07), gold, .08, -.06, 0));
+    keyM.add(mesh(new THREE.CylinderGeometry(.2, .2, .04, 20).rotateX(Math.PI / 2), gold, 0, .2, 0), mesh(new THREE.BoxGeometry(.07, .45, .07), gold, 0, -.12, 0), mesh(new THREE.BoxGeometry(.11, .22, .11), std('#d0476a'), 0, -.3, 0));
     keyM.visible = false; chest.add(keyM); keyM.position.y = .7;
   }
   let lidOpen = 0, keyRise = 0;
   updaters.push((dt) => { lid.rotation.x += ((pl.key ? -1.9 : 0) - lid.rotation.x) * Math.min(1, dt * 5); if (keyRise > 0) { keyRise -= dt; keyM.position.y = .7 + (2.4 - keyRise) * .5; keyM.rotation.y += dt * 4; if (keyRise <= 0) keyM.visible = false; } });
   addInteract(chest, 'Open the chest', () => {
-    if (pl.key) { whisper('the chest is empty now. the Boss Key is in your pack.'); return; }
+    if (pl.key) { whisper('the chest is empty now. the golden pizza cutter is in your pack.'); return; }
     pl.key = true; keyRise = 2.4; keyM.visible = true;
     arp([523.3, 659.3, 784, 1046.5, 1318.5, 1568], .09, 'square', .06, .4);
-    whisper('you got the BOSS KEY! it opens a locked door on the underside.', 4200);
+    whisper('you got the GOLDEN PIZZA CUTTER! aliens tip double at the pizza place on the underside.', 4200);
   }, 2.6, .6).note = 'chest';
   mark(null, skyIs.d, 'chest');
 
@@ -2425,6 +2533,8 @@ function buildPixel(pl) {
     const d = ringAt(f).clone(), m = mesh(new THREE.BoxGeometry(1, 1, 1), qMat); place(pl, m, d, 2.9, 0);
     plat(d.clone().multiplyScalar(pl.R + 3.4), .74);
     qBlocks.push({ m, d, bottom: pl.center.clone().addScaledVector(d, pl.R + 2.4), left: 3, bump: 0, cd: 0 });
+    const under = new THREE.Object3D(); place(pl, under, d, 0, 0);
+    addInteract(under, 'Press SPACE under the ? box to bonk it', () => { jumpQueued = true; }, 2.1, 1).key = 'SPACE';
     mark(null, d, 'qblock');
   }
 
@@ -2534,6 +2644,7 @@ function buildPixel(pl) {
     const top = ground(shR, 0, z, capY + capR * .62);
     plat(top, capR * .78); solid(ground(shR, 0, z), capR * .42 + .3, Math.min(stemH - .2, 1.6));
     mark(i === 3 ? 'Mega Mushroom Bridge' : null, top, 'redshroom');
+    const bite = new THREE.Object3D(); put(shR, bite, 0, z); addInteract(bite, 'Take a bite of the mushroom', startTrip, 1.6 + capR * .5, 1).note = 'shroom';
     if (i === 3) mega = { m, top };
   });
   pads.push({ pos: pl.center.clone().add(mega.top), n: mega.top.clone().normalize(), r: 1.5, top: mega.m, sq: 0, cap: true });
@@ -2556,7 +2667,7 @@ function buildPixel(pl) {
     if (fillIn > 0) { fillIn -= rdt; if (fillIn <= 0) slots.forEach(c => { if (c.broken) popCrate(c); }); }
     if (player.onPlat === spinPf && !ride && mode === 'play') {
       spinQ.setFromAxisAngle(spinPf.n, spinW * dt);
-      player.p.sub(spinPf.pos).applyQuaternion(spinQ).add(spinPf.pos); player.fwd.applyQuaternion(spinQ); player.face.applyQuaternion(spinQ);
+      player.p.sub(spinPf.pos).applyQuaternion(spinQ).add(spinPf.pos); player.face.applyQuaternion(spinQ);   // you ride around with it (the camera keeps its heading, so you can see yourself go round)
     }
   });
   addInteract(disc, 'Spin the merry-go-round', () => {
@@ -2685,26 +2796,107 @@ function buildPixel(pl) {
     updaters.push((dt) => cloudsG.rotation.y += dt * .02); }
 
   /* ---- the underside: after hours in the suburbs ---- */
-  const houseLines = ['no one is home.', 'the tv is on in an empty room.', 'you hear your own footsteps inside.', 'this was your house once. or one just like it.'];
-  [[-31, 100, '#e8e0cf', '#6b5e72'], [-31, 20, '#cfd8dc', '#5d6b78']].forEach(([la, lo, wc, rc], i) => {
-    const h = new THREE.Group(), winM = glow('#ffd88a', 1.9);
-    h.add(mesh(new THREE.BoxGeometry(4, 2.8, 3.4), std(wc, { roughness: .9 }), 0, 1.4, 0));
-    const roof = mesh(new THREE.ConeGeometry(3.3, 1.8, 4), std(rc, { roughness: .9 }), 0, 3.7, 0); roof.rotation.y = Math.PI / 4; roof.scale.z = .88; h.add(roof);
+  // the house where an alien lives: knock, and it challenges you to tic-tac-toe
+  { const h = new THREE.Group(), winM = glow('#ffd88a', 1.9);
+    h.add(mesh(new THREE.BoxGeometry(4, 2.8, 3.4), std('#e8e0cf', { roughness: .9 }), 0, 1.4, 0));
+    const roof = mesh(new THREE.ConeGeometry(3.3, 1.8, 4), std('#6b5e72', { roughness: .9 }), 0, 3.7, 0); roof.rotation.y = Math.PI / 4; roof.scale.z = .88; h.add(roof);
     h.add(mesh(new THREE.BoxGeometry(.45, 1.2, .45), std('#8a7a72'), 1.1, 4.0, -.4));
-    h.add(mesh(new THREE.BoxGeometry(.8, 1.6, .06), std('#5d4a40'), 0, .8, 1.72));
+    const doorP = new THREE.Group(); doorP.position.set(-.4, 0, 1.72); h.add(doorP);
+    doorP.add(mesh(new THREE.BoxGeometry(.8, 1.6, .06), std('#5d4a40'), .4, .8, 0), mesh(new THREE.SphereGeometry(.05, 8, 6), std('#ffd23d', { metalness: .6, roughness: .3 }), .7, .8, .05));
+    h.add(mesh(new THREE.PlaneGeometry(.78, 1.58), glow('#8dffb0', 1.4), 0, .8, 1.705));   // green light spilling out of the doorway
     for (const x of [-1.25, 1.25]) h.add(mesh(new THREE.PlaneGeometry(.75, .62), winM, x, 1.7, 1.711));
     for (const z of [-.8, .8]) { const w = mesh(new THREE.PlaneGeometry(.6, .55), winM, 2.011, 1.7, z); w.rotation.y = Math.PI / 2; h.add(w); }
     h.add(mesh(new THREE.SphereGeometry(.1, 8, 6), glow('#ffe7b0', 3), 0, 1.85, 1.85));
-    const d = at(la, lo, .19); placeFacing(pl, h, d, 0, ll(-47, lo)); addCollider(h, V(-1, 0, 0), 2.1, 4); addCollider(h, V(1, 0, 0), 2.1, 4);
-    let off = 0;
-    updaters.push((dt) => { if (off > 0) { off -= dt; winM.color.set(off > .3 ? '#1a1610' : '#ffd88a').multiplyScalar(off > .3 ? 1 : 1.9); } });
-    addInteract(h, 'Knock on the door', () => {
-      for (let k = 0; k < 3; k++) Sound.knock(k * .3, k === 2 ? 1.1 : .9);
-      setTimeout(() => { off = 1.8; Sound.tone(98, 1.5, 'sine', .08); }, 1000);
-      whisper(houseLines[(i * 2 + Math.floor(Math.random() * 2)) % 4]);
-    }, 3.6).note = 'knock';
-    mark(null, d, 'house');
-  });
+    const alien = makeAlien(), au = alien.userData; alien.visible = false; h.add(alien);
+    const d = at(-31, 100, .19); placeFacing(pl, h, d, 0, ll(-47, 100)); addCollider(h, V(-1, 0, 0), 2.1, 4); addCollider(h, V(1, 0, 0), 2.1, 4);
+    let open = 0, openTo = 0, busy = false, mood = 0, moodT = 0;
+    updaters.push((dt, t) => {
+      open += (openTo - open) * Math.min(1, dt * (openTo ? 3 : 6)); doorP.rotation.y = -1.75 * open;
+      alien.visible = open > .2; moodT -= dt;
+      const dance = moodT > 0 && mood > 0, sad = moodT > 0 && mood < 0;
+      alien.position.set(0, dance ? Math.abs(Math.sin(t * 9)) * .22 : 0, 1.45 + .75 * open);
+      au.head.rotation.z = dance ? Math.sin(t * 9) * .3 : Math.sin(t * 1.6) * .06; au.head.rotation.x = sad ? .45 : 0;
+      au.armR.rotation.z = open > .5 ? (dance ? 2.7 + Math.sin(t * 9) * .4 : sad ? .1 : 1.3 + Math.sin(t * 6) * .5) : .15;
+      au.armL.rotation.z = dance ? -2.7 - Math.sin(t * 9) * .4 : -.15;
+    });
+    const it = addInteract(h, 'Knock on the door', () => {
+      if (busy) return; busy = true;
+      const P = player, spot = h.localToWorld(V(0, 0, 2.9)), door = h.localToWorld(V(0, .9, 1.72)), from = P.p.clone();
+      const glide = h.worldToLocal(P.p.clone()).z > .5 ? .45 : 0;
+      for (let k = 0; k < 3; k++) Sound.knock(glide + .15 + k * .32, k === 2 ? 1.1 : .9);
+      let t = 0, opened = false, spoke = false;
+      hold = { step(dt) {
+        t += dt; P.vel.set(0, 0, 0);
+        if (t < glide) { P.p.lerpVectors(from, spot, t / glide); const n = grad(P.p, nrm, P.up); P.p.addScaledVector(n, -sdfV(P.p)); }
+        P.face.copy(door).sub(P.p).projectOnPlane(P.up).normalize(); P.fwd.lerp(P.face, 1 - Math.exp(-dt * 6)).normalize();
+        if (t >= glide && !P.knock && t < glide + .2) P.knock = 1.15;
+        if (!opened && t > glide + 1.5) { opened = true; openTo = 1; Sound.noise(.06, 1800, 2, .25); Sound.creak(1.1, 620, 380, .26, .05, 30); }
+        if (!spoke && t > glide + 2.2) { spoke = true; voice(14, 1.75); Sound.sweep(700, 1500, .35, 'sine', .05); whisper('an alien opens the door: "greetings, earthling! play tic-tac-toe with me?"', 3400); }
+        if (t < glide + 3.9) return true;
+        const ok = openTTT(res => {
+          busy = false;
+          if (res === 'win') { mood = -1; moodT = 4; wearCrown(); pl.crown = 1; it.label = 'Knock for a rematch'; voice(6, 1.2); whisper('"you win! the crown is yours, earthling."', 3400); setTimeout(() => { openTo = 0; }, 3500); }
+          else if (res === 'lose') { mood = 1; moodT = 4; beLoser(); voice(12, 2.1); whisper('"I WIN! you are a LOSER, earthling!" (knock to try again)', 3600); setTimeout(() => { openTo = 0; }, 3500); }
+          else { openTo = 0; voice(4, 1.6); whisper('"come back soon, earthling!" the door clicks shut.', 2600); }
+        });
+        if (!ok) { busy = false; openTo = 0; }
+        return false; } };
+    }, 3.6);
+    it.note = 'alien';
+    mark('Alien house', d, 'house'); }
+
+  // the bounce castle: bounce on the floor (hold SPACE for big bounces), then climb up and zoom down the slide
+  { const bc = new THREE.Group(), cx = -1.6, puff = c => std(c, { roughness: .55, emissive: c, emissiveIntensity: .18 });
+    const red = puff('#ff4f4f'), yel = puff('#ffd23d'), blu = puff('#3d9bff'), org = puff('#ff8a2a'), navy = std('#1d4f9a', { roughness: .6 });
+    const tubeX = (len, x, y, z, m, r = .16) => { const t = mesh(new THREE.CapsuleGeometry(r, len, 4, 10), m, x, y, z); t.rotation.z = Math.PI / 2; bc.add(t); };
+    const tubeZ = (len, x, y, z, m, r = .16) => { const t = mesh(new THREE.CapsuleGeometry(r, len, 4, 10), m, x, y, z); t.rotation.x = Math.PI / 2; bc.add(t); };
+    // the bouncy floor (it squishes when you land)
+    const floorG = new THREE.Group(); floorG.position.set(cx, -.75, 0); bc.add(floorG);
+    floorG.add(mesh(new THREE.BoxGeometry(4.4, 1.2, 3.6), red, 0, .6, 0), mesh(new THREE.BoxGeometry(4.0, .06, 3.2), blu, 0, 1.22, 0));
+    tubeX(4.0, cx, .5, 1.75, yel);
+    // puffy walls: blue back wall, yellow side wall, a low front wall with the doorway on the right
+    bc.add(mesh(new THREE.BoxGeometry(4.0, 1.7, .3), blu, cx, 1.3, -1.65)); tubeX(3.8, cx, 2.2, -1.65, yel, .19);
+    bc.add(mesh(new THREE.BoxGeometry(.3, 1.3, 3.0), yel, cx - 2.05, 1.1, 0)); tubeZ(2.8, cx - 2.05, 1.8, 0, red, .18);
+    for (const z of [-.7, .7]) { const w = mesh(new THREE.CircleGeometry(.32, 16), navy, cx - 2.21, 1.15, z); w.rotation.y = -Math.PI / 2; bc.add(w); }
+    for (const x of [-1, 0, 1]) bc.add(mesh(new THREE.CircleGeometry(.3, 16), navy, cx + x * 1.15, 1.35, -1.49));
+    bc.add(mesh(new THREE.BoxGeometry(1.8, .7, .3), blu, cx - 1.1, .8, 1.65)); tubeX(1.6, cx - 1.1, 1.18, 1.65, red, .17);
+    // the slide tower and its deck
+    bc.add(mesh(new THREE.BoxGeometry(.5, 2.8, 1.5), red, .45, .9, 0), mesh(new THREE.BoxGeometry(.9, .2, 1.5), yel, .55, 2.3, 0));
+    tubeZ(1.3, .45, 2.55, -.7, blu, .12);
+    // four turrets with pointy tops
+    [[-2.05, -1.65, blu, red], [2.05, -1.65, red, org], [-2.05, 1.65, red, org], [2.05, 1.65, blu, red]].forEach(([x, z, cm, tm]) => {
+      bc.add(mesh(new THREE.CylinderGeometry(.36, .4, 3.2, 14), cm, cx + x, 1.0, z), mesh(new THREE.ConeGeometry(.46, .8, 14), tm, cx + x, 3.0, z), mesh(new THREE.SphereGeometry(.1, 10, 8), yel, cx + x, 3.45, z));
+      const rg = mesh(new THREE.TorusGeometry(.39, .07, 6, 18), yel, cx + x, 2.55, z); rg.rotation.x = Math.PI / 2; bc.add(rg);
+    });
+    // the slide, from the deck down to a cushion on the grass
+    const chute = new THREE.Group(); chute.position.set(2.2, 1.165, 0); chute.rotation.z = -.735; bc.add(chute);
+    chute.add(mesh(new THREE.BoxGeometry(3.78, .14, 1.3), blu));
+    for (const sd of [-1, 1]) chute.add(mesh(new THREE.CapsuleGeometry(.12, 3.6, 4, 8), red, 0, .16, sd * .62).rotateZ(Math.PI / 2));
+    for (let k = 0; k < 5; k++) chute.add(mesh(new THREE.BoxGeometry(.12, .02, 1.1), yel, -1.4 + k * .7, .08, 0));
+    bc.add(mesh(new THREE.BoxGeometry(1.2, .7, 1.7), yel, 4.2, -.3, 0));
+    const d = at(-31, 20, .26); placeFacing(pl, bc, d, 0, ll(-47, 20));
+    const toLocal = v => v.applyQuaternion(bc.quaternion).add(bc.position);
+    // physics: a bouncy one-way floor, turrets and walls you can't walk through
+    const floorTop = toLocal(V(cx, .5, 0));
+    plat(floorTop, 1.95);
+    pads.push({ pos: pl.center.clone().add(floorTop), n: floorTop.clone().normalize(), r: 1.9, top: floorG, sq: 0, cap: true, pow: 9, bigPow: 13 });
+    for (const [x, z] of [[-2.05, -1.65], [2.05, -1.65], [-2.05, 1.65], [2.05, 1.65]]) addCollider(bc, V(cx + x, 0, z), .42, 3.4);
+    for (const x of [-1.4, -.45, .5, 1.4]) addCollider(bc, V(cx + x, 0, -1.65), .42, 2.4);
+    for (const z of [-.8, .1, .9]) addCollider(bc, V(cx - 2.05, 0, z), .4, 2);
+    for (const x of [-1.6, -.7]) addCollider(bc, V(cx + x, 0, 1.65), .4, 1.3);
+    for (const z of [-.45, .45]) addCollider(bc, V(.45, 0, z), .42, 2.6);
+    const hop = new THREE.Object3D(); hop.position.set(cx + 1.1, 0, 2.6); bc.add(hop);
+    addInteract(hop, 'Hop in! hold SPACE as you land for big bounces', () => { jumpQueued = true; }, 1.8, .8).key = 'SPACE';
+    const slideA = new THREE.Object3D(); slideA.position.set(4.6, 0, 1.4); bc.add(slideA);
+    addInteract(slideA, 'Climb up and zoom down the slide', () => {
+      for (let k = 0; k < 4; k++) Sound.sweep(240 + k * 60, 600 + k * 120, .2, 'square', .035);   // boing boing up the tower
+      startRide([V(cx + 1.0, .5, 1.4), V(cx + 1.5, .5, .4), V(.3, 2.4, 0), V(.8, 2.4, 0)], bc, 3.4, () => {
+        player.sit = true; Sound.noise(1.2, 900, .7, .09); Sound.sweep(900, 240, 1.1, 'triangle', .06); whisper('wheeeee!', 1800);
+        startRide([V(.95, 1.77, 0), V(1.2, 1.55, 0), V(3.5, -.53, 0), V(4.4, -.57, 0)], bc, 6, () => { Sound.noise(.25, 200, 1, .25); launch(4); getUp(.5); });
+      });
+    }, 2.6, 1).note = 'castle';
+    mark('Bounce castle', d, 'play'); }
+
   for (const lo of [130, 60, -10, -60, -120]) {
     const l = new THREE.Group();
     l.add(mesh(new THREE.CylinderGeometry(.07, .1, 3.8, 8), std('#5b5864', { metalness: .5, roughness: .5 }), 0, 1.9, 0));
@@ -2714,46 +2906,104 @@ function buildPixel(pl) {
     placeFacing(pl, l, d, 0, ll(-47, lo)); addCollider(l, V(), .3, 3.8);
   }
 
-  // the hallway that shouldn't be here (it has a locked door)
-  const hallD = at(-72, 60, .28), hall = patch(hallD, ll(-46, 60)), lampM = glow('#fff8d8', 2.4);
-  let hallOpen = 0, flick = 0;
-  const hallPivot = new THREE.Group(); {
-    const paper = canvasTex(256, 256, (g, w) => { g.fillStyle = '#d6c56c'; g.fillRect(0, 0, w, w); for (let x = 0; x < w; x += 16) { g.fillStyle = 'rgba(120,100,30,.12)'; g.fillRect(x, 0, 6, w); }
-      g.fillStyle = 'rgba(160,140,60,.5)'; for (let y = 8; y < w; y += 32) for (let x = (y / 32 % 2) * 16; x < w; x += 32) { g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill(); }
-      g.fillStyle = '#8f7d3a'; g.fillRect(0, w - 14, w, 14); });
-    paper.wrapS = paper.wrapT = THREE.RepeatWrapping;
-    const wall = (x, z, len, ry, hgt = 3.2, y = 1.6) => {
-      const t = paper.clone(); t.needsUpdate = true; t.repeat.set(len / 3, hgt / 3.2);
-      put(hall, mesh(new THREE.BoxGeometry(len, hgt, .22), seeThrough(std('#ffffff', { map: t, roughness: .95 }))), x, z, y, ry);
-      if (y > 2) return; const ax = Math.cos(ry), az = -Math.sin(ry);
-      for (let s = -len / 2 + .3; s <= len / 2 - .29; s += .55) solid(ground(hall, x + ax * s, z + az * s), .42, 3.2);
-    };
-    wall(-1.3, 0, 6.2, Math.PI / 2); wall(1.3, 0, 6.2, Math.PI / 2); wall(0, -3, 2.82, 0);
-    wall(-.95, 3, .72, 0); wall(.95, 3, .72, 0); wall(0, 3, 1.2, 0, .7, 2.85);
-    const fd = std('#7a5a3a', { roughness: .8, side: THREE.DoubleSide });
-    for (const [x, z, ry] of [[-1.18, -1.4, Math.PI / 2], [1.18, -1.4, -Math.PI / 2], [-1.18, 1.1, Math.PI / 2], [1.18, .9, -Math.PI / 2]]) put(hall, mesh(new THREE.PlaneGeometry(.9, 2.1), fd), x, z, 1.05, ry);
-    for (const z of [-1.8, 0, 1.8]) { const p = new THREE.Group(); p.add(mesh(new THREE.BoxGeometry(1.4, .08, .55), lampM), mesh(new THREE.BoxGeometry(1.55, .06, .7), std('#d9d4c4'), 0, .07, 0)); put(hall, p, 0, z, 3.3); }
-    const exit = new THREE.Group(); exit.add(mesh(new THREE.BoxGeometry(.8, .3, .06), glow('#7dff9a', 2))); put(hall, exit, 0, -2.86, 2.75);
-    put(hall, hallPivot, -.6, 3);
-    const slabM = seeThrough(std('#8a6a4a', { roughness: .7 }));
-    hallPivot.add(mesh(new THREE.BoxGeometry(1.2, 2.5, .1), slabM, .6, 1.25, 0));
-    hallPivot.add(mesh(new THREE.BoxGeometry(.2, .3, .04), std('#ffd23d', { metalness: .7, roughness: .3, emissive: '#ffae00', emissiveIntensity: .5 }), 1.0, 1.15, .07));
+  // Pizza Planet: an alien flies down in a UFO, orders, and you make the pizzas
+  const pzD = at(-72, 60, .3), ps = patch(pzD, ll(-46, 60));
+  const pzAt = (x, z, y = 0) => ps.localToWorld(V(x, surfY(x, z) + y, z));
+  { const cream = std('#fff3da', { roughness: .85 }), red = std('#e8463a', { roughness: .6 }), wood = std('#c4843f', { map: crateTex, roughness: .85 });
+    const shop = new THREE.Group();
+    shop.add(mesh(new THREE.BoxGeometry(4.2, 2.8, 2.6), cream, 0, 1.4, -.6), mesh(new THREE.BoxGeometry(4.5, .25, 2.9), red, 0, 2.92, -.6));
+    shop.add(mesh(new THREE.PlaneGeometry(3.3, 1.2), glow('#ffcf8a', .9), 0, 1.75, .705));
+    for (let k = 0; k < 8; k++) { const st = mesh(new THREE.BoxGeometry(.55, .06, 1.15), k % 2 ? std('#ffffff') : red, -1.925 + k * .55, 2.42, 1.15); st.rotation.x = .38; shop.add(st); }
+    shop.add(mesh(new THREE.BoxGeometry(3.6, 1.0, .7), wood, 0, .5, 1.15), mesh(new THREE.BoxGeometry(3.8, .08, .82), std('#f4f4fb', { roughness: .3 }), 0, 1.04, 1.15));
+    const signTex = canvasTex(512, 128, (g, w, h) => {
+      g.fillStyle = '#ffd23d'; g.fillRect(0, 0, w, h); g.fillStyle = '#e8463a'; g.fillRect(0, h - 14, w, 14); g.fillRect(0, 0, w, 8);
+      g.font = '84px VT323, "Courier New", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#5a2a20'; g.fillText('PIZZA PLANET', w / 2, h / 2 + 2);
+    });
+    document.fonts && document.fonts.ready.then(() => { const g = signTex.userData.ctx; g.fillStyle = '#ffd23d'; g.fillRect(0, 8, 512, 106); g.font = '84px VT323, "Courier New", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#5a2a20'; g.fillText('PIZZA PLANET', 256, 66); signTex.needsUpdate = true; });
+    shop.add(mesh(new THREE.BoxGeometry(3.5, .95, .12), red, 0, 3.55, .1), mesh(new THREE.PlaneGeometry(3.4, .85), new THREE.MeshBasicMaterial({ map: signTex }), 0, 3.55, .17));
+    // a giant pizza on the roof
+    const roofPz = new THREE.Group(); roofPz.position.set(1.6, 3.2, -1.2); roofPz.rotation.set(-.9, 0, .2); shop.add(roofPz);
+    roofPz.add(mesh(new THREE.CylinderGeometry(.8, .8, .14, 20), std('#e0a050'), 0, 0, 0), mesh(new THREE.CylinderGeometry(.68, .68, .16, 20), std('#ffb83d', { emissive: '#ff8a2a', emissiveIntensity: .25 }), 0, .01, 0));
+    for (let k = 0; k < 6; k++) roofPz.add(mesh(new THREE.CylinderGeometry(.11, .11, .17, 10), std('#d0473a'), Math.cos(k * 1.05) * .4, .02, Math.sin(k * 1.05) * .4));
+    put(ps, shop, 0, 0);
+    addCollider(shop, V(-1.1, 0, -.6), 1.5, 3.4); addCollider(shop, V(1.1, 0, -.6), 1.5, 3.4); addCollider(shop, V(-1.2, 0, 1.15), .5, 1.1); addCollider(shop, V(0, 0, 1.15), .5, 1.1); addCollider(shop, V(1.2, 0, 1.15), .5, 1.1);
+    // the brick oven beside the shop
+    const oven = new THREE.Group(), bake = glow('#ff8a2a', 1.2);
+    oven.add(mesh(new THREE.BoxGeometry(1.6, .7, 1.5), std('#9a8a86', { roughness: .9 }), 0, .35, 0), mesh(new THREE.SphereGeometry(.72, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), std('#b8573a', { roughness: .9 }), 0, .7, 0));
+    oven.add(mesh(new THREE.CircleGeometry(.32, 16, 0, Math.PI), bake, 0, .72, .71), mesh(new THREE.CylinderGeometry(.12, .12, .6, 10), std('#7a6a66'), .25, 1.55, -.2));
+    put(ps, oven, 2.95, .5); addCollider(oven, V(), .85, 1.5);
+    // order up: pizza boxes and cokes appear on the counter when you serve
+    const loot = new THREE.Group(); loot.visible = false; shop.add(loot);
+    for (let k = 0; k < 3; k++) { const bx = mesh(new THREE.BoxGeometry(.62, .1, .62), std('#fff8ec'), -.5, 1.13 + k * .11, 1.15); bx.add(mesh(new THREE.BoxGeometry(.63, .02, .2), std('#e8463a'), 0, .05, 0)); loot.add(bx); }
+    for (let k = 0; k < 2; k++) loot.add(mesh(new THREE.CylinderGeometry(.06, .06, .2, 10), std('#e8463a', { metalness: .4, roughness: .3 }), .4 + k * .18, 1.18, 1.15));
+
+    // the UFO and its alien
+    const ufo = new THREE.Group(), metal = std('#cfd6e4', { metalness: .85, roughness: .25 });
+    const hull = mesh(new THREE.SphereGeometry(1.4, 28, 12), metal); hull.scale.y = .26; ufo.add(hull);
+    ufo.add(mesh(new THREE.TorusGeometry(1.38, .1, 8, 32).rotateX(Math.PI / 2), std('#8a93a8', { metalness: .8, roughness: .3 })));
+    ufo.add(mesh(new THREE.SphereGeometry(.62, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), std('#9ff3ff', { transparent: true, opacity: .55, roughness: .05, metalness: .2, emissive: '#3dc8ff', emissiveIntensity: .3 }), 0, .2, 0));
+    const lights = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, l = mesh(new THREE.SphereGeometry(.08, 8, 6), glow(k % 2 ? '#ff6fd8' : '#ffd23d', 2.5), Math.cos(a) * 1.3, -.06, Math.sin(a) * 1.3); ufo.add(l); lights.push(l); }
+    ufo.add(mesh(new THREE.CircleGeometry(.5, 20).rotateX(Math.PI / 2), glow('#d6ff6a', 1.6), 0, -.37, 0));
+    const beamM = new THREE.MeshBasicMaterial({ color: '#d6ff9a', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    const beam = mesh(new THREE.CylinderGeometry(.45, 1.05, 1, 20, 1, true), beamM); beam.visible = false; ufo.add(beam);
+    ufo.visible = false; put(ps, ufo, 2.2, 3.0);
+    const customer = makeAlien(), cu = customer.userData; customer.visible = false; put(ps, customer, 2.2, 3.0, 0, Math.PI + .5);
+    const ufoBase = ufo.position.clone(), upU = V(0, 1, 0).applyQuaternion(ufo.quaternion), sideU = V(1, 0, 0).applyQuaternion(ufo.quaternion), cBase = customer.position.clone();
+    const HOVER = 4.4;
+    const ORDERS = [
+      { n: 1, top: ['cheese', 'mushroom'], coke: 1, name: 'cheese mushroom pizza' }, { n: 1, top: ['cheese', 'onion'], coke: 2, name: 'cheese onion pizza' },
+      { n: 2, top: ['cheese', 'corn'], coke: 1, name: 'cheese corn pizza' }, { n: 1, top: ['cheese', 'mushroom', 'onion'], coke: 1, name: 'cheese mushroom onion pizza' },
+      { n: 3, top: ['cheese'], coke: 1, name: 'cheese pizza' }];
+    let st = 'away', stT = 0, lastOrder = -1, happy = true, ufoSpin = 0;
+    const go = name => { st = name; stT = 0; };
+    updaters.push((dt, t, rdt) => {
+      stT += rdt; ufoSpin += dt * 2.2; ufo.rotation.y = ufoSpin;
+      lights.forEach((l, k) => l.scale.setScalar(.7 + .5 * Math.max(0, Math.sin(t * 8 - k * .8))));
+      bake.color.set('#ff8a2a').multiplyScalar(pizzaBaking() ? 2.6 + Math.sin(t * 20) * .4 : 1.2);
+      const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2, beamTo = (on, h) => { beam.visible = on > 0; beamM.opacity = on * (.45 + Math.sin(t * 14) * .08); beam.scale.y = h; beam.position.y = -h / 2 - .3; };
+      if (st === 'away') return;
+      let h = HOVER + Math.sin(t * 2) * .12, side = 0, ch = 0;
+      if (st === 'arrive') { const k = ease(Math.min(1, stT / 2.4)); h = 16 - (16 - HOVER) * k; side = 12 * (1 - k); if (stT >= 2.4) go('down'); }
+      if (st === 'down') { const k = Math.min(1, stT / 1.1); beamTo(1, HOVER - .3); customer.visible = true; ch = (1 - k) * (HOVER - 1.2); customer.scale.setScalar(.4 + .6 * k); if (k >= 1) { beamTo(0, 1); go('order'); } }
+      if (st === 'order' || st === 'served') { customer.visible = true; customer.scale.setScalar(1); ch = st === 'served' && happy ? Math.abs(Math.sin(t * 9)) * .2 : 0;
+        cu.armR.rotation.z = st === 'served' ? 2.6 + Math.sin(t * 9) * .4 : 1.0 + Math.sin(t * 5) * .4; cu.head.rotation.z = Math.sin(t * (st === 'served' ? 9 : 1.6)) * (st === 'served' ? .25 : .06);
+        if (st === 'served' && stT > 2.2) go('up'); }
+      if (st === 'up') { const k = Math.min(1, stT / 1.1); beamTo(1, HOVER - .3); ch = k * (HOVER - 1.2); customer.scale.setScalar(1 - .6 * k); if (k >= 1) { customer.visible = false; loot.visible = false; beamTo(0, 1); go('leave'); Sound.sweep(300, 900, 1.6, 'sine', .05); } }
+      if (st === 'leave') { const k = ease(Math.min(1, stT / 2.2)); h = HOVER + (18 - HOVER) * k; side = -14 * k; if (stT >= 2.2) { ufo.visible = false; go('away'); } }
+      ufo.position.copy(ufoBase).addScaledVector(upU, h).addScaledVector(sideU, side);
+      customer.position.copy(cBase).addScaledVector(upU, ch);
+      if (st === 'up' && stT < .05 || st === 'order') loot.visible = loot.visible && st !== 'order';
+    });
+    const counter = new THREE.Object3D(); put(ps, counter, -.4, 2.2);
+    const it = addInteract(counter, 'Open the pizza place', () => {
+      if (st !== 'away') { whisper('a customer is already on the way!', 2000); return; }
+      let oi; do oi = Math.floor(Math.random() * ORDERS.length); while (oi === lastOrder); lastOrder = oi; const order = ORDERS[oi];
+      ufo.visible = true; go('arrive'); Sound.sweep(120, 260, 2.4, 'sine', .08); Sound.sweep(900, 400, 2.4, 'triangle', .03);
+      whisper('a UFO is landing... you have a customer!', 2600);
+      const P = player, spot = pzAt(-.6, 2.4), face = pzAt(-.6, .9, 1);
+      const from = P.p.clone(); let t = 0, spoke = false;
+      hold = { step(dt) {
+        t += dt; P.vel.set(0, 0, 0);
+        if (t < .5) { P.p.lerpVectors(from, spot, t / .5); const n = grad(P.p, nrm, P.up); P.p.addScaledVector(n, -sdfV(P.p)); }
+        P.face.copy(face).sub(P.p).projectOnPlane(P.up).normalize(); P.fwd.lerp(P.face, 1 - Math.exp(-dt * 6)).normalize();
+        if (!spoke && st === 'order') { spoke = true; voice(16, 1.8); whisper(`the alien says: "${order.n} ${order.name}${order.n > 1 ? 's' : ''} and ${order.coke} coke${order.coke > 1 ? 's' : ''}, please!"`, 3600); }
+        if (!spoke || st !== 'order' || t < 4.2) return true;
+        const ok = openPizza(order, ++pl.pizzaNo, res => {
+          if (res === 'served') {
+            happy = true; loot.visible = true; [...loot.children].forEach((c, k) => c.visible = k < 3 ? k < order.n : k - 3 < order.coke);
+            pl.pizzas++; const tip = pl.key ? 20 : 10; addCoins(tip, pzAt(-.4, 1.2, 1.4)); voice(10, 2.1);
+            whisper(`"5 stars, earthling!" +${tip} coins${pl.key ? ' (golden cutter tip!)' : ''}`, 3400); partyPopper(pzAt(-.4, 1.2, 1.6));
+            if (pl.pizzas === 5) setTimeout(() => toast('Pizza Planet legend', 'five orders served across the galaxy'), 2600);
+          } else { happy = false; voice(5, .8); whisper('"no pizza?" the alien sulks back to its ship.', 3000); }
+          go('served');
+        });
+        if (!ok) go('up');
+        return false; } };
+    }, 2.6, 1);
+    it.note = 'pizza';
+    pl.pizzaNo = 0;
+    mark('Pizza Planet', pzD, 'house');
   }
-  const hallDoorCol = solid(ground(hall, 0, 3), .55, 3.2);
-  updaters.push((dt, t) => {
-    hallPivot.rotation.y += ((hallOpen ? 1.7 : 0) - hallPivot.rotation.y) * Math.min(1, dt * 3);
-    if (flick > 0) flick -= dt; const on = flick > 0 ? Math.random() > .5 : Math.sin(t * 37) > -.97; lampM.color.setRGB(on ? 2.4 : .2, on ? 2.35 : .2, on ? 2.1 : .18);
-  });
-  const hallAnchor = new THREE.Object3D(); put(hall, hallAnchor, 0, 3.9);
-  const hallIt = addInteract(hallAnchor, 'Try the locked door', () => {
-    if (hallOpen) { flick = 2.2; for (let i = 0; i < 6; i++) Sound.tone(120, .25, 'sawtooth', .04, i * .3); whisper("the hallway hums. it's longer on the inside."); return; }
-    if (!pl.key) { Sound.noise(.15, 300, 4, .25); Sound.noise(.15, 300, 4, .25, .25); whisper('locked. a tiny sign says: BOSS KEY ONLY.', 2800); return; }
-    hallOpen = 1; pl.bossOpen = true; hallDoorCol.r = 0; flick = 2.2; hallIt.label = 'Listen to the hum';
-    Sound.sweep(200, 90, 1.2, 'sawtooth', .06); arp([392, 493.9, 587.3, 784], .12, 'square', .045, .5);
-    whisper('the boss key fits. the hallway hums. something is glowing inside.', 3600);
-  }, 2.6, 1);
-  hallIt.note = 'boss';
-  mark('The hallway', hallD, 'hallway');
 
   // the glowing staircase up to the secret zone
   const gsD = at(-60, -160, .1), gs = patch(gsD, ll(-60, -100));
@@ -2775,7 +3025,7 @@ function buildPixel(pl) {
   }
   orbAt(ground(cl, 1, -.3, 4 + 1.35));
   orbAt(above(mega.top, 4.2));
-  orbAt(ground(hall, 0, -1.7, 1.35));
+  orbAt(ground(ps, -2.6, 1.4, 1.35));
 
   // ---- instanced blocks + coins ----
   for (const k in lists) {
@@ -2817,19 +3067,20 @@ function buildPixel(pl) {
       if (!player.grounded || padCD > 0) break;
       tq.copy(player.p).sub(p.pos); const h = tq.dot(p.n); if (Math.abs(h) > .35) continue;
       tq.addScaledVector(p.n, -h); if (tq.length() > p.r) continue;
-      const big = keys.has('Space'); launch(big ? 21 : p.cap ? 16 : 14); padCD = .5; padAir = true; p.sq = 1; pl.bounces++;
+      const big = keys.has('Space'); launch(big ? p.bigPow || 21 : p.pow || (p.cap ? 16 : 14)); padCD = .5; padAir = true; p.sq = 1; pl.bounces++;
       Sound.sweep(big ? 180 : 240, big ? 1100 : 760, big ? .45 : .3, 'square', .06);
       if (!toldPad) { toldPad = true; whisper(big ? 'BOING! holding jump gets you extra height!' : 'boing! hold jump for extra height!', 3000); }
     }
     if (padAir && player.grounded && padCD <= 0) { padAir = false; launch(5); Sound.sweep(300, 520, .14, 'square', .04); }
     // bonk ? blocks from below
     for (const q of qBlocks) {
-      if (q.left <= 0 || q.cd > 0) continue;
+      if (q.cd > 0) continue;
       tq.copy(player.p).addScaledVector(player.up, 1.85).sub(q.bottom); const h = tq.dot(q.d); if (h < -.5 || h > .35) continue;
       const vu = player.vel.dot(q.d); if (vu <= 0) continue;
       tq.addScaledVector(q.d, -h); if (tq.length() > .75) continue;
-      player.vel.addScaledVector(q.d, -vu - 1); q.left--; q.bump = 1; q.cd = .3; addCoins(1, q.bottom.clone().addScaledVector(q.d, 1.3));
-      Sound.noise(.08, 200, 2, .2); if (!q.left) q.m.material = usedMat;
+      player.vel.addScaledVector(q.d, -vu - 1); q.bump = 1; q.cd = .6; Sound.noise(.08, 200, 2, .2);
+      if (q.left > 0) { q.left--; addCoins(1, q.bottom.clone().addScaledVector(q.d, 1.3)); if (!q.left) q.m.material = usedMat; }
+      partyPopper(q.bottom); pl.party = 1;
     }
     // gems
     tq.copy(player.p).addScaledVector(player.up, .9);
@@ -3366,6 +3617,8 @@ const keys = new Set();
 const GAME_KEYS = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight', 'KeyE', 'KeyF', 'KeyM'];
 let jumpQueued = false;
 addEventListener('keydown', e => {
+  if (pzOn) { if (e.code === 'Escape') closePizza(); return; }
+  if (tttOn) { if (e.code === 'Escape') closeTTT(); else { const m = /^(Digit|Numpad)([1-9])$/.exec(e.code); if (m) tttPlay(+m[2] - 1); } return; }
   if (mode === 'map' && (e.code === 'KeyM' || e.code === 'Escape')) { e.preventDefault(); closeMap(); return; }
   if (mode !== 'play') return;
   if (GAME_KEYS.includes(e.code)) e.preventDefault();
@@ -3561,14 +3814,231 @@ const look2 = V();
 function placeCamera(dt) {
   const P = player;
   camUp.lerp(P.up, 1 - Math.exp(-dt * 5)).normalize();
+  const cf = tripYaw ? tripF.copy(P.fwd).applyAxisAngle(P.up, tripYaw) : P.fwd;   // a mushroom makes the world slowly spin around you
   const target = tmp.copy(P.p).addScaledVector(P.up, 1.4)
-    .addScaledVector(P.fwd, -camDist * Math.cos(pitch)).addScaledVector(P.up, camDist * Math.sin(pitch));
+    .addScaledVector(cf, -camDist * Math.cos(pitch)).addScaledVector(P.up, camDist * Math.sin(pitch));
   const rate = playTime < 2.5 ? 1.2 + playTime * 2 : 9;
   camPos.lerp(target, 1 - Math.exp(-dt * rate));
   const dc = sdfV(camPos); if (dc < .7) camPos.addScaledVector(grad(camPos, tmp2, P.up), .7 - dc);
   camera.position.copy(camPos); camera.up.copy(camUp);
   look2.copy(P.p).addScaledVector(P.up, 1.4); camera.lookAt(look2);
+  if (tripEnv > 0) camera.rotateZ(Math.sin(tripT * 1.1) * .32 * tripEnv);
 }
+
+/* ---- a bite of a mushroom: for 7 seconds the world slowly spins and stars swirl around you ---- */
+const TRIP = 7, tripF = V(); let trip = 0, tripT = 0, tripYaw = 0, tripEnv = 0;
+function startTrip() {
+  if (trip > 0) return; trip = TRIP; tripT = 0;
+  Sound.sweep(300, 1200, 1.2, 'sine', .06); Sound.sweep(1200, 200, 2.2, 'triangle', .04);
+  [0, 1.4, 2.8, 4.2, 5.6].forEach((w, i) => setTimeout(() => { Sound.sweep(400 + i * 60, 900 + i * 90, .9, 'sine', .05); Sound.sweep(900, 350, 1.1, 'sine', .035); arp([1046.5, 1318.5, 1568, 2093], .07, 'sine', .03, .6); }, w * 1000));
+  whisper(choice(['whoa... the mushroom tastes like a 1-up.', 'everything is spinning... the stars came to say hi.', 'you feel very, very small. or the world got very, very big.']), 3600);
+}
+updaters.push((dt, t, rdt) => {
+  if (trip > 0) { trip -= rdt; tripT += rdt; tripEnv = Math.max(0, Math.min(1, tripT / 1.2, trip / 1.5)); tripYaw += rdt * 1.1 * tripEnv; }
+  else { tripEnv = 0; if (tripYaw) { const goal = Math.round(tripYaw / (Math.PI * 2)) * Math.PI * 2; tripYaw += (goal - tripYaw) * Math.min(1, rdt * 3); if (Math.abs(goal - tripYaw) < .002) tripYaw = 0; } }
+  if (tripEnv > 0) {
+    camera.fov = 62 + Math.sin(tripT * 2.3) * 7 * tripEnv; camera.updateProjectionMatrix();
+    cv.style.filter = `hue-rotate(${Math.round(Math.sin(tripT * .9) * 70 * tripEnv)}deg) saturate(${(1 + .7 * tripEnv).toFixed(2)})`;
+    const head = player.p.clone().addScaledVector(player.up, 1.3), ax = V().crossVectors(player.up, player.fwd).normalize(), az = V().crossVectors(ax, player.up);
+    for (let k = 0; k < 3; k++) {   // stars circling your head
+      const a = Math.random() * Math.PI * 2, r = R(.9, 1.6), p = head.clone().addScaledVector(ax, Math.cos(a) * r).addScaledVector(az, Math.sin(a) * r).addScaledVector(player.up, R(-.5, .9));
+      parts.emit(p, ax.clone().multiplyScalar(-Math.sin(a) * 2.2).addScaledVector(az, Math.cos(a) * 2.2).addScaledVector(player.up, R(-.2, .4)), choice(['#fff6b0', '#ffd23d', '#ff9ad5', '#9fe8ff', '#c9a6ff']), R(.9, 1.6), R(.25, .5));
+    }
+  } else if (camera.fov !== 62) { camera.fov = 62; camera.updateProjectionMatrix(); cv.style.filter = ''; }
+});
+
+/* ---- party popper: confetti bursting around you for 5 seconds ---- */
+let partyT = 0, partyAcc = 0;
+function partyPopper(from) {
+  const fresh = partyT <= 0; partyT = 5; partyAcc = 0;
+  if (fresh) { arp([523.3, 659.3, 784, 1046.5, 1318.5], .08, 'triangle', .07, .5); Sound.sweep(330, 1500, .4, 'sawtooth', .035); }
+  for (let k = 0; k < 50; k++) parts.emit(from.clone(), rdir().multiplyScalar(R(2, 6)), choice(['#ff4f6d', '#ffd23d', '#3dc8ff', '#6fdc5a', '#ff6fd8', '#ffffff', '#b46bff']), R(1.4, 2.4), R(.25, .45));
+}
+updaters.push((dt, t, rdt) => {
+  if (partyT <= 0) return; partyT -= rdt; partyAcc -= rdt; if (partyAcc > 0) return; partyAcc = .5;
+  const up = player.up, head = player.p.clone().addScaledVector(up, 1.2), side = V().crossVectors(up, player.fwd).normalize();
+  for (const sd of [-1, 1]) {
+    const from = head.clone().addScaledVector(side, sd * R(1, 1.8)).addScaledVector(player.fwd, R(-.5, 1));
+    Sound.noise(.07, 2400, .7, .4, Math.random() * .1);   // pop!
+    for (let k = 0; k < 24; k++) parts.emit(from, up.clone().multiplyScalar(R(3, 6)).add(rdir().multiplyScalar(R(1, 3))).addScaledVector(side, -sd * R(.5, 2)), choice(['#ff4f6d', '#ffd23d', '#3dc8ff', '#6fdc5a', '#ff6fd8', '#ffffff', '#b46bff']), R(1.4, 2.4), R(.22, .42));
+  }
+});
+
+/* ---- tic-tac-toe with the alien: you're ✕ and go first; it's clever, but not perfect ---- */
+const TTT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+let tttOn = false, tttB = [], tttOver = false, tttRes = null, tttCb = null;
+const tttWinner = b => TTT_LINES.find(l => b[l[0]] && b[l[0]] === b[l[1]] && b[l[0]] === b[l[2]]) || null;
+for (let i = 0; i < 9; i++) { const b = document.createElement('button'); b.addEventListener('click', () => tttPlay(i)); $('ttt-grid').append(b); }
+function openTTT(cb) {
+  if (mode !== 'play') return false;
+  tttCb = cb; tttOn = true; mode = 'type'; keys.clear(); stick.dx = stick.dy = 0; if (locked()) document.exitPointerLock();
+  $('ttt').classList.remove('gone'); $('ttt').setAttribute('aria-hidden', 'false'); tttReset(); return true;
+}
+function tttReset() {
+  tttB = Array(9).fill(''); tttOver = false; tttRes = null; $('btn-ttt-again').hidden = true;
+  $('ttt-title').textContent = 'Tic-tac-toe, earthling?'; $('ttt-hint').textContent = "you're ✕ and you go first · click a square or press 1-9 · esc to walk away";
+  tttDraw(); setTimeout(() => $('ttt-grid').children[4].focus(), 60);
+}
+function tttDraw(line) {
+  [...$('ttt-grid').children].forEach((b, i) => {
+    b.textContent = tttB[i] === 'x' ? '✕' : tttB[i] === 'o' ? '◯' : ''; b.className = tttB[i] + (line && line.includes(i) ? ' win' : '');
+    b.disabled = tttOver || !!tttB[i]; b.setAttribute('aria-label', `square ${i + 1}` + (tttB[i] ? (tttB[i] === 'x' ? ', yours' : ", the alien's") : ''));
+  });
+}
+function tttAlienMove() {
+  const free = tttB.map((v, i) => v ? -1 : i).filter(i => i >= 0);
+  const finish = sym => free.find(i => { tttB[i] = sym; const w = tttWinner(tttB); tttB[i] = ''; return w; });
+  let m = finish('o'); if (m === undefined && Math.random() < .8) m = finish('x');
+  if (m === undefined && !tttB[4] && Math.random() < .7) m = 4;
+  if (m === undefined) m = choice(free);
+  tttB[m] = 'o'; voice(3, 1.9);
+}
+function tttPlay(i) {
+  if (!tttOn || tttOver || tttB[i]) return;
+  tttB[i] = 'x'; Sound.tone(660, .12, 'square', .05);
+  if (tttEnd()) return;
+  tttOver = true; tttDraw(); $('ttt-hint').textContent = 'the alien is thinking...';
+  setTimeout(() => { if (!tttOn) return; tttOver = false; tttAlienMove(); if (!tttEnd()) $('ttt-hint').textContent = 'your turn · click a square or press 1-9'; }, 700);
+}
+function tttEnd() {
+  const w = tttWinner(tttB), full = tttB.every(Boolean);
+  if (!w && !full) { tttDraw(); return false; }
+  tttOver = true; tttDraw(w); tttRes = !w ? 'draw' : tttB[w[0]] === 'x' ? 'win' : 'lose';
+  $('ttt-title').textContent = tttRes === 'win' ? 'You win! 👑' : tttRes === 'lose' ? 'The alien wins...' : "It's a draw!";
+  $('ttt-hint').textContent = tttRes === 'win' ? 'the alien bows to you, earthling.' : tttRes === 'lose' ? 'the alien does a little victory dance.' : 'nobody wins. one more round?';
+  if (tttRes === 'draw') { $('btn-ttt-again').hidden = false; $('btn-ttt-again').focus(); Sound.tone(440, .3, 'triangle', .05); }
+  else setTimeout(() => closeTTT(), 1900);
+  return true;
+}
+function closeTTT() {
+  if (!tttOn) return; tttOn = false; mode = 'play';
+  $('ttt').classList.add('gone'); $('ttt').setAttribute('aria-hidden', 'true'); cv.focus();
+  const cb = tttCb; tttCb = null; cb && cb(tttRes === 'win' || tttRes === 'lose' ? tttRes : 'away');
+}
+$('btn-ttt-again').addEventListener('click', tttReset);
+$('btn-ttt-x').addEventListener('click', closeTTT);
+
+/* ---- the pizza kitchen: dough, roll it flat, toppings, 5 seconds in the oven, then serve with cokes ---- */
+const PZ_BINS = [['dough', '<span class="dough"></span>', 'dough'], ['pin', '<span class="pinic"></span>', 'rolling pin'], ['cheese', '🧀', 'cheese'], ['mushroom', '🍄', 'mushroom'], ['onion', '🧅', 'onion'], ['corn', '🌽', 'corn'], ['oven', '🔥', 'oven'], ['coke', '🥤', 'coke'], ['trash', '🗑️', 'trash']];
+let pzOn = false, pzO = null, pzCb = null, pzCur = null, pzReady = [], pzCokes = 0, pzBakeT = 0, pzTimer = 0;
+const pizzaBaking = () => pzBakeT > 0;
+PZ_BINS.forEach(([id, ic, label]) => { const b = document.createElement('button'); b.className = id === 'oven' || id === 'coke' ? id : ''; b.dataset.id = id; b.innerHTML = `<span class="ic">${ic}</span>${label}`; b.addEventListener('click', () => pzUse(id)); $('pz-bins').append(b); });
+function openPizza(order, num, cb) {
+  if (mode !== 'play') return false;
+  pzOn = true; pzO = order; pzCb = cb; pzCur = null; pzReady = []; pzCokes = 0; pzBakeT = 0; mode = 'type'; keys.clear(); stick.dx = stick.dy = 0; if (locked()) document.exitPointerLock();
+  $('pz-num').textContent = `ORDER #${num}`; $('pz').classList.remove('gone'); $('pz').setAttribute('aria-hidden', 'false');
+  pzStep('start by taking some dough'); pzDraw(); return true;
+}
+function closePizza(res = 'away') {
+  if (!pzOn) return; pzOn = false; clearInterval(pzTimer); pzBakeT = 0; mode = 'play';
+  $('pz').classList.add('gone'); $('pz').setAttribute('aria-hidden', 'true'); $('pz-oven').hidden = true; cv.focus();
+  const cb = pzCb; pzCb = null; cb && cb(res);
+}
+function pzStep(msg, bad = false) { const el = $('pz-step'); el.textContent = msg; el.classList.toggle('bad', bad); if (bad) Sound.tone(220, .18, 'square', .04); }
+const pzMatch = p => p.top.size === pzO.top.length && pzO.top.every(x => p.top.has(x));
+function pzNext() {
+  if (!pzCur) return pzReady.length < pzO.n ? 'take some dough for the next pizza' : pzCokes < pzO.coke ? 'grab the cokes from the cooler' : 'everything is ready: serve the order!';
+  if (pzCur.stage < 3) return `roll the dough flat with the rolling pin (${3 - pzCur.stage} more)`;
+  const miss = pzO.top.filter(x => !pzCur.top.has(x));
+  return miss.length ? `add ${miss.join(' and ')}` : 'now bake it in the oven for 5 seconds';
+}
+function pzUse(id) {
+  if (!pzOn || pzBakeT > 0) return;
+  if (id === 'dough') { if (pzCur) return pzStep('finish this pizza first (or trash it)', true); pzCur = { stage: 0, top: new Set() }; Sound.noise(.18, 260, 1, .4); pzStep(pzNext()); }
+  else if (id === 'pin') {
+    if (!pzCur) return pzStep('take some dough first', true); if (pzCur.stage >= 3) return pzStep('it is already nice and flat', true);
+    pzCur.stage++; const pin = $('pz-pin'); pin.classList.remove('go'); void pin.offsetWidth; pin.classList.add('go');
+    Sound.noise(.5, 500, .8, .18, 0, 'lowpass'); pzStep(pzNext());
+  }
+  else if (['cheese', 'mushroom', 'onion', 'corn'].includes(id)) {
+    if (!pzCur) return pzStep('take some dough first', true); if (pzCur.stage < 3) return pzStep('roll the dough flat first', true);
+    if (pzCur.top.has(id)) return pzStep(`it already has ${id}`, true);
+    pzCur.top.add(id); if (id === 'cheese') Sound.noise(.45, 3800, .7, .12); else for (let k = 0; k < 6; k++) Sound.noise(.03, 2200 + k * 150, 3, .2, k * .05);
+    pzStep(pzNext());
+  }
+  else if (id === 'oven') {
+    if (!pzCur || pzCur.stage < 3) return pzStep('make a flat pizza first', true); if (!pzCur.top.size) return pzStep('add some toppings before baking', true);
+    pzBakeT = 5; $('pz-oven').hidden = false; $('pz-bar').style.width = '0'; $('pz-oventxt').textContent = '5'; Sound.noise(.3, 180, 1, .35); Sound.noise(1.2, 400, .6, .08, .1, 'lowpass');
+    [...$('pz-bins').children].forEach(b => b.disabled = true);
+    const t0 = performance.now();
+    pzTimer = setInterval(() => {
+      const left = Math.max(0, 5 - (performance.now() - t0) / 1000); pzBakeT = left;
+      $('pz-bar').style.width = `${(1 - left / 5) * 100}%`; $('pz-oventxt').textContent = Math.ceil(left) || 'ding!';
+      if (left <= 0) {
+        clearInterval(pzTimer); pzBakeT = 0; Sound.tone(1568, .8, 'sine', .1); Sound.tone(2093, 1, 'sine', .07, .12);
+        setTimeout(() => { if (!pzOn) return; $('pz-oven').hidden = true; [...$('pz-bins').children].forEach(b => b.disabled = false); pzCur.baked = true; pzReady.push(pzCur); pzCur = null; pzStep(pzNext()); pzDraw(); }, 500);
+      }
+    }, 100);
+  }
+  else if (id === 'coke') { if (pzCokes >= 5) return pzStep('that is a lot of coke...', true); pzCokes++; Sound.noise(.05, 1400, 2, .4); Sound.noise(.7, 5200, .5, .1, .06); pzStep(pzNext()); }
+  else if (id === 'trash') {
+    if (pzCur) { pzCur = null; pzStep('into the trash it goes. take some fresh dough'); }
+    else if (pzReady.length) { pzReady.pop(); pzStep('you threw away the last pizza'); }
+    else return pzStep('nothing to throw away', true);
+    Sound.noise(.3, 300, 1, .3);
+  }
+  pzDraw();
+}
+function pzServe() {
+  if (!pzOn || pzBakeT > 0) return;
+  const bad = pzReady.find(p => !pzMatch(p));
+  if (bad) { const extra = [...bad.top].filter(x => !pzO.top.includes(x)), miss = pzO.top.filter(x => !bad.top.has(x)); voice(5, .9);
+    return pzStep(`"that's not my pizza!" ` + (extra.length ? `no ${extra.join(' or ')}, please.` : `it needs ${miss.join(' and ')}.`) + ' (trash it and make another)', true); }
+  if (pzReady.length !== pzO.n) return pzStep(`the alien wants ${pzO.n} pizza${pzO.n > 1 ? 's' : ''}, you have ${pzReady.length} ready`, true);
+  if (pzCokes !== pzO.coke) return pzStep(`the alien wants ${pzO.coke} coke${pzO.coke > 1 ? 's' : ''}, you have ${pzCokes}` + (pzCokes > pzO.coke ? ' (click a can to put it back)' : ''), true);
+  arp([523.3, 659.3, 784, 1046.5, 1318.5], .08, 'triangle', .08, .6); closePizza('served');
+}
+function pzDraw() {
+  const o = pzO, good = pzReady.filter(pzMatch).length;
+  $('pz-order').innerHTML = `<li class="${good >= o.n ? 'ok' : ''}">${o.n} × ${o.name}${o.n > 1 ? 's' : ''}</li><li class="${pzCokes === o.coke ? 'ok' : ''}">${o.coke} × coke</li>`;
+  const tray = $('pz-tray'); tray.textContent = '';
+  pzReady.forEach(() => { const m = document.createElement('span'); m.className = 'mini'; tray.append(m); });
+  for (let k = 0; k < pzCokes; k++) { const b = document.createElement('button'); b.setAttribute('aria-label', 'put a coke back'); b.addEventListener('click', () => { pzCokes--; pzDraw(); pzStep(pzNext()); }); tray.append(b); }
+  // the pizza on the board
+  let h = '<rect x="-20" y="118" width="40" height="22" rx="8" fill="#a8703f"/><circle r="128" fill="#c99566"/><circle r="122" fill="#d8a878"/>';
+  const c = pzCur;
+  if (c) {
+    const r = [46, 72, 96, 112][c.stage];
+    h += c.stage < 3 ? `<ellipse rx="${r}" ry="${r * (c.stage ? .96 : .82)}" fill="#f3dcae"/><ellipse rx="${r * .8}" ry="${r * .7}" cy="${-r * .12}" fill="#faecc8"/>` : `<circle r="${r}" fill="#f0d29c"/><circle r="${r - 12}" fill="#e8473a"/>`;
+    if (c.top.has('cheese')) { h += `<circle r="${r - 16}" fill="#ffe27a"/>`; for (let k = 0; k < 18; k++) { const a = k * 2.4, rr = (r - 26) * Math.sqrt((k + .5) / 18); h += `<circle cx="${(Math.cos(a) * rr).toFixed(1)}" cy="${(Math.sin(a) * rr).toFixed(1)}" r="5" fill="#fff3b0"/>`; } }
+    const spots = (n, off, f) => { for (let k = 0; k < n; k++) { const a = k * 2.39996 + off, rr = (r - 28) * Math.sqrt((k + .6) / n); h += f((Math.cos(a) * rr).toFixed(1), (Math.sin(a) * rr).toFixed(1), (a * 57.3 % 360).toFixed(0)); } };
+    if (c.top.has('mushroom')) spots(8, .4, (x, y, rot) => `<g transform="translate(${x} ${y}) rotate(${rot})"><path d="M-11 2 A11 10 0 0 1 11 2 Z" fill="#e9dcc8" stroke="#b89c80" stroke-width="2"/><rect x="-3.5" y="1" width="7" height="9" rx="2" fill="#f4ead8" stroke="#b89c80" stroke-width="2"/></g>`);
+    if (c.top.has('onion')) spots(9, 1.3, (x, y) => `<circle cx="${x}" cy="${y}" r="9" fill="none" stroke="#b46bd6" stroke-width="3.5"/><circle cx="${x}" cy="${y}" r="4" fill="none" stroke="#d9a6f0" stroke-width="2"/>`);
+    if (c.top.has('corn')) spots(16, 2.1, (x, y) => `<circle cx="${x}" cy="${y}" r="5" fill="#ffd23d" stroke="#e0a020" stroke-width="1.5"/>`);
+  } else if (pzReady.length) h += '<text y="-4" text-anchor="middle" font-size="22" fill="#7a4a34" font-family="VT323, monospace">pizza is in the tray!</text><text y="20" text-anchor="middle" font-size="18" fill="#9a6a50" font-family="VT323, monospace">what next?</text>';
+  else h += '<text y="8" text-anchor="middle" font-size="24" fill="#7a4a34" font-family="VT323, monospace">take some dough</text>';
+  $('pz-svg').innerHTML = h;
+}
+$('pz-serve').addEventListener('click', pzServe);
+$('pz-x').addEventListener('click', () => closePizza());
+
+/* ---- prizes the dreamer can wear: a gold crown, or (for a little while) a LOSER sign ---- */
+const crown = new THREE.Group(); let loserSign = null, loserT = 0;
+function wearCrown() {
+  if (!crown.children.length) {
+    const gold = std('#ffd23d', { metalness: .8, roughness: .25, emissive: '#ffae00', emissiveIntensity: .5, side: THREE.DoubleSide });
+    crown.add(mesh(new THREE.CylinderGeometry(.19, .17, .11, 18, 1, true), gold));
+    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; crown.add(mesh(new THREE.ConeGeometry(.045, .13, 4), gold, Math.cos(a) * .18, .11, Math.sin(a) * .18), mesh(new THREE.SphereGeometry(.026, 8, 6), glow(['#ff4f6d', '#3dc8ff', '#6fdc5a'][k % 3], 2), Math.cos(a) * .19, 0, Math.sin(a) * .19)); }
+    crown.position.set(0, 1.98, -.02); crown.rotation.x = -.15; inner.add(crown);
+  }
+  crown.visible = true; loserT = 0; if (loserSign) loserSign.visible = false;
+  flash(); arp([523.3, 659.3, 784, 1046.5, 1318.5, 1568], .09, 'triangle', .08, .8);
+  const p = player.p.clone().addScaledVector(player.up, 2.1);
+  for (let k = 0; k < 50; k++) parts.emit(p.clone(), rdir().multiplyScalar(R(1, 3.5)), choice(['#ffd23d', '#fff1a8', '#ffffff']), R(.8, 1.5), R(.25, .45));
+  toast('You won a crown!', 'it sits on your head, a little crooked. perfect.');
+}
+function beLoser() {
+  if (!loserSign) {
+    const tex = canvasTex(256, 96, (g, w, h) => {
+      g.fillStyle = 'rgba(40,10,30,.8)'; g.beginPath(); g.roundRect(6, 6, w - 12, h - 12, 22); g.fill(); g.lineWidth = 5; g.strokeStyle = '#ff4f6d'; g.stroke();
+      g.font = '64px VT323, "Courier New", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ff9ab0'; g.fillText('LOSER', w / 2, h / 2 + 3);
+    });
+    loserSign = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false })); loserSign.scale.set(1.1, .41, 1); inner.add(loserSign);
+  }
+  loserSign.visible = true; loserT = 15;
+  [392, 370, 349.2, 329.6].forEach((f, i) => Sound.tone(f, i === 3 ? 1.3 : .45, 'sawtooth', .035, i * .5));   // wah wah wah waaah
+}
+updaters.push((dt, t, rdt) => { if (loserT > 0) { loserT -= rdt; loserSign.position.y = 2.45 + Math.sin(t * 3) * .05; if (loserT <= 0) loserSign.visible = false; } });
 
 const skyTarget = { top: new THREE.Color(), bottom: new THREE.Color(), tint: new THREE.Color() };
 function updateWorldState(dt) {
@@ -3592,7 +4062,7 @@ function updateWorldState(dt) {
   nearest = null; let nd = 1e9;
   if (!ride && !hold) for (const it of interactables) { const d = P.p.distanceTo(it.pos); if (d < it.radius && d < nd) { nd = d; nearest = it; } }
   const pr = $('prompt');
-  if (nearest) { pr.hidden = false; $('prompt-text').textContent = nearest.label; $('prompt-key').textContent = isTouch ? 'tap' : 'E'; } else pr.hidden = true;
+  if (nearest) { pr.hidden = false; $('prompt-text').textContent = nearest.label; $('prompt-key').textContent = nearest.key && !isTouch ? nearest.key : isTouch ? 'tap' : 'E'; } else pr.hidden = true;
   $('t-use').classList.toggle('ready', !!nearest);
 
   // memories

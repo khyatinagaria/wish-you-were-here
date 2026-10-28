@@ -835,6 +835,18 @@ function makeAlien() {
   for (const s of [-1, 1]) { const sh = new THREE.Group(); sh.position.set(s * .2, .58, 0); g.add(sh); sh.add(mesh(new THREE.CapsuleGeometry(.045, .26, 4, 8), skin, 0, -.17, 0)); arms.push(sh); }
   g.userData = { head, armL: arms[0], armR: arms[1] }; return g;
 }
+function makeUFO() {
+  const ufo = new THREE.Group(), metal = std('#cfd6e4', { metalness: .85, roughness: .25 });
+  const hull = mesh(new THREE.SphereGeometry(1.4, 28, 12), metal); hull.scale.y = .26; ufo.add(hull);
+  ufo.add(mesh(new THREE.TorusGeometry(1.38, .1, 8, 32).rotateX(Math.PI / 2), std('#8a93a8', { metalness: .8, roughness: .3 })));
+  ufo.add(mesh(new THREE.SphereGeometry(.62, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), std('#9ff3ff', { transparent: true, opacity: .55, roughness: .05, metalness: .2, emissive: '#3dc8ff', emissiveIntensity: .3 }), 0, .2, 0));
+  const lights = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, l = mesh(new THREE.SphereGeometry(.08, 8, 6), glow(k % 2 ? '#ff6fd8' : '#ffd23d', 2.5), Math.cos(a) * 1.3, -.06, Math.sin(a) * 1.3); ufo.add(l); lights.push(l); }
+  ufo.add(mesh(new THREE.CircleGeometry(.5, 20).rotateX(Math.PI / 2), glow('#d6ff6a', 1.6), 0, -.37, 0));
+  const beamM = new THREE.MeshBasicMaterial({ color: '#d6ff9a', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+  const beam = mesh(new THREE.CylinderGeometry(.45, 1.05, 1, 20, 1, true), beamM); beam.visible = false; ufo.add(beam);
+  const pilot = makeAlien(); pilot.scale.setScalar(.42); pilot.position.y = -.08; ufo.add(pilot);
+  return { g: ufo, beam, beamM, lights };
+}
 function makeGear(r, n, c) {
   const g = new THREE.Group(), m = std(c, { metalness: .6, roughness: .35, emissive: c, emissiveIntensity: .2 });
   const disc = mesh(new THREE.CylinderGeometry(r, r, .14, 28), m); disc.rotation.x = Math.PI / 2; g.add(disc);
@@ -2310,6 +2322,7 @@ function buildPixel(pl) {
   note('sky', 'Climb the rainbow stairs');
   note('chest', 'Open the Sky Island chest');
   note('pizza', 'Serve 5 pizza orders to the aliens');
+  note('knock', 'Knock on the glowing cottage');
   note('falls', 'Dip your toes in the pool');
   note('tune', 'Get a song from the Tune-Man');
   note('door', 'Find the secret zone');
@@ -2765,10 +2778,45 @@ function buildPixel(pl) {
     placeFacing(pl, co, coD, 0, ll(52, 12)); addCollider(co, V(-.95, 0, 0), 1.75, 4); addCollider(co, V(.95, 0, 0), 1.75, 4);
     let off = 0;
     updaters.push((dt) => { if (off > 0) { off -= dt; winM.color.set(off > .3 ? '#1a1610' : '#ffd88a').multiplyScalar(off > .3 ? 1 : 2.2); } });
+    // knock, and the alien's UFO comes to take you for a 7 second spin around the planet
+    const taxi = makeUFO(); taxi.g.visible = false; pl.group.add(taxi.g);
+    let trip = null;
+    updaters.push((dt, t) => {
+      taxi.lights.forEach((l, k) => l.scale.setScalar(.7 + .5 * Math.max(0, Math.sin(t * 8 - k * .8))));
+      if (!trip) return;
+      const T = trip.t, beamTo = (on, h) => { taxi.beam.visible = on > 0; taxi.beamM.opacity = on * (.45 + Math.sin(t * 14) * .08); taxi.beam.scale.y = h; taxi.beam.position.y = -h / 2 - .3; };
+      const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2, k = x => Math.min(1, Math.max(0, x));
+      let a = 0, h = 4.6, sideA = 0;
+      if (T < 3.2) { const e = ease(k((T - 1) / 2.2)); sideA = -.9 * (1 - e); h = 18 - 13.4 * e; }
+      else if (T < 4.4) beamTo(1, 3.6);
+      else if (T < 11.4) { const e = ease(k((T - 4.4) / 7)); a = e * Math.PI * 2; h = 4.6 + Math.sin(e * Math.PI) * 3.5; beamTo(.5, 2); }
+      else if (T < 12.6) beamTo(1, 3.6);
+      else { beamTo(0, 1); const e = ease(k((T - 12.6) / 2.2)); h = 4.6 + 16 * e; sideA = 1.1 * e; if (T > 14.8) { taxi.g.visible = false; trip = null; return; } }
+      if (T < 4.4 || T >= 11.4) beamTo(T >= 3.2 && T < 4.4 || T >= 11.4 && T < 12.6 ? 1 : 0, 3.6);
+      const dir = trip.home.clone().applyAxisAngle(trip.axis, a + sideA);
+      taxi.g.visible = T > 1; taxi.g.position.copy(dir).multiplyScalar(pl.R + h);
+      taxi.g.quaternion.setFromUnitVectors(Y, dir); taxi.g.rotateY(t * 2.2);
+      trip.dir = dir; trip.h = h;
+    });
     addInteract(co, 'Knock on the cottage door', () => {
-      for (let k = 0; k < 3; k++) Sound.knock(k * .3, k === 2 ? 1.1 : .9);
-      setTimeout(() => { off = 1.6; Sound.tone(98, 1.5, 'sine', .08); }, 1000);
-      whisper(choice(['the lights are on. you can smell cocoa. nobody answers.', 'a voice inside says: "save your game before you go!"', 'this cottage has been glowing since the level loaded.']));
+      if (trip) return;
+      for (let k = 0; k < 3; k++) Sound.knock(.15 + k * .32, k === 2 ? 1.1 : .9);
+      const P = player, home = P.p.clone().sub(pl.center).normalize(), fwdT = P.fwd.clone().addScaledVector(home, -P.fwd.dot(home)).normalize();
+      trip = { t: 0, home, axis: V().crossVectors(home, fwdT).normalize(), dir: home.clone(), h: 18 };
+      const g0 = P.p.clone(); P.knock = 1.15; let said = 0;
+      setTimeout(() => { off = 1.6; Sound.sweep(120, 260, 2.2, 'sine', .08); Sound.sweep(900, 400, 2.2, 'triangle', .03); whisper('nobody answers... but something is landing on the roof!', 2600); }, 1000);
+      hold = { step(dt) {
+        trip.t += dt; const T = trip.t; P.vel.set(0, 0, 0);
+        const under = pl.center.clone().addScaledVector(trip.dir, pl.R + trip.h - 1.9);
+        if (T >= 3.2 && T < 4.4) { const e = (T - 3.2) / 1.2; P.p.lerpVectors(g0, under, e * e); P.sit = e > .3; if (!said++) { voice(12, 1.8); Sound.sweep(300, 1200, 1.2, 'sine', .06); whisper('the Pizza Planet alien: "need a lift, earthling?"', 2600); } }
+        else if (T >= 4.4 && T < 11.4) {
+          P.p.copy(under); P.up.copy(trip.dir); P.sit = true;
+          const fw = V().crossVectors(trip.axis, trip.dir).normalize(); P.fwd.lerp(fw, 1 - Math.exp(-dt * 4)).normalize(); P.face.copy(fw);
+          if (said < 2) { said = 2; Sound.sweep(150, 420, 7, 'sine', .07); Sound.noise(7, 600, .5, .05, 0, 'lowpass'); whisper('wheeeee! a UFO spin around World 1-1!', 3000); }
+        }
+        else if (T >= 11.4 && T < 12.6) { const e = (T - 11.4) / 1.2; P.p.lerpVectors(under, g0, 1 - (1 - e) * (1 - e)); P.up.copy(trip.home); }
+        else if (T >= 12.6) { P.p.copy(g0); P.sit = false; P.squash = .8; Sound.sweep(300, 900, 1.6, 'sine', .05); voice(6, 2); whisper('the alien drops you back home. "same time tomorrow?"', 3000); return false; }
+        return true; } };
     }, 3.6).note = 'knock';
     mark('Glowing cottage', coD, 'cottage'); }
 
@@ -2938,14 +2986,7 @@ function buildPixel(pl) {
     for (let k = 0; k < 2; k++) loot.add(mesh(new THREE.CylinderGeometry(.06, .06, .2, 10), std('#e8463a', { metalness: .4, roughness: .3 }), .4 + k * .18, 1.18, 1.15));
 
     // the UFO and its alien
-    const ufo = new THREE.Group(), metal = std('#cfd6e4', { metalness: .85, roughness: .25 });
-    const hull = mesh(new THREE.SphereGeometry(1.4, 28, 12), metal); hull.scale.y = .26; ufo.add(hull);
-    ufo.add(mesh(new THREE.TorusGeometry(1.38, .1, 8, 32).rotateX(Math.PI / 2), std('#8a93a8', { metalness: .8, roughness: .3 })));
-    ufo.add(mesh(new THREE.SphereGeometry(.62, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), std('#9ff3ff', { transparent: true, opacity: .55, roughness: .05, metalness: .2, emissive: '#3dc8ff', emissiveIntensity: .3 }), 0, .2, 0));
-    const lights = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, l = mesh(new THREE.SphereGeometry(.08, 8, 6), glow(k % 2 ? '#ff6fd8' : '#ffd23d', 2.5), Math.cos(a) * 1.3, -.06, Math.sin(a) * 1.3); ufo.add(l); lights.push(l); }
-    ufo.add(mesh(new THREE.CircleGeometry(.5, 20).rotateX(Math.PI / 2), glow('#d6ff6a', 1.6), 0, -.37, 0));
-    const beamM = new THREE.MeshBasicMaterial({ color: '#d6ff9a', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-    const beam = mesh(new THREE.CylinderGeometry(.45, 1.05, 1, 20, 1, true), beamM); beam.visible = false; ufo.add(beam);
+    const { g: ufo, beam, beamM, lights } = makeUFO();
     ufo.visible = false; put(ps, ufo, 2.2, 3.0);
     const customer = makeAlien(), cu = customer.userData; customer.visible = false; put(ps, customer, 2.2, 3.0, 0, Math.PI + .5);
     const ufoBase = ufo.position.clone(), upU = V(0, 1, 0).applyQuaternion(ufo.quaternion), sideU = V(1, 0, 0).applyQuaternion(ufo.quaternion), cBase = customer.position.clone();

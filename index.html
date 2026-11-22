@@ -4274,7 +4274,7 @@ function introRide(pl, first) {
     const n = grad(player.p, V(), player.up); player.p.addScaledVector(n, -sdfV(player.p));
     if (first) whisper('start here: off the escalator', 3000);
   });
-  if (!first) camPos.copy(player.p).addScaledVector(player.up, 5).addScaledVector(player.fwd, -9);
+  ride.stairCam = true; escalCam(); camPos.copy(escTo);   // start right behind you, looking down the steps
 }
 function rideEscalatorUp(pl) {
   const e = pl.escal;
@@ -4287,6 +4287,7 @@ function rideEscalatorUp(pl) {
       else { const others = PLANETS.filter(p => p !== pl); arriveAt(others[Math.floor(Math.random() * others.length)]); whisper('the escalator lets you off somewhere else entirely', 3200); }
     }, 260);
   });
+  ride.stairCam = true;
 }
 
 /* ================= input ================= */
@@ -4494,6 +4495,14 @@ const look2 = V();
 // player view: see the world through the dreamer's own eyes (V or the button beside the map)
 let fpv = false; try { fpv = localStorage.getItem('wywh-view') === 'player'; } catch (_) {}
 function toggleView() { fpv = !fpv; try { localStorage.setItem('wywh-view', fpv ? 'player' : 'normal'); } catch (_) {} $('btn-view').textContent = fpv ? 'normal view' : 'player view'; }
+// on the escalators the camera rides just above and behind you, looking along the steps ahead,
+// so it never ends up inside the cloud puffs or the door at the top
+const escTo = V(), escLook = V();
+function escalCam() {
+  const P = player, r = ride;
+  r.path.at(r.s - 1.8, escTo).addScaledVector(r.up, 2.5); if (r.s < 1.8) escTo.addScaledVector(P.face, -(1.8 - r.s));
+  r.path.at(r.s + 4.5, escLook).addScaledVector(r.up, .5);
+}
 function placeCamera(dt) {
   const P = player;
   camUp.lerp(P.up, 1 - Math.exp(-dt * 5)).normalize();
@@ -4508,6 +4517,10 @@ function placeCamera(dt) {
     look2.copy(camPos).addScaledVector(ef, Math.cos(a) * 10).addScaledVector(P.up, Math.sin(a) * 10); camera.lookAt(look2);
     if (tripEnv > 0) camera.rotateZ(Math.sin(tripT * 1.1) * .32 * tripEnv);
     return;
+  }
+  if (ride && ride.stairCam) {
+    escalCam(); camPos.lerp(escTo, 1 - Math.exp(-dt * 6));
+    camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(escLook); return;
   }
   const target = tmp.copy(P.p).addScaledVector(P.up, 1.4)
     .addScaledVector(cf, -camDist * Math.cos(pitch)).addScaledVector(P.up, camDist * Math.sin(pitch));

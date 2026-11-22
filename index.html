@@ -2566,6 +2566,18 @@ function buildPixel(pl) {
   }
   pl.group.updateMatrixWorld(true);
   const startGate = kartGate('START', 3.6, true), finishGate = kartGate('FINISH', kart.path.total - 2.6);
+  { // glowing double arrows painted down the middle of the track, START to FINISH; a pulse of light chases along them the way you drive
+    const chev = y => new THREE.Shape([[-.6, -.15], [0, .45], [.6, -.15], [.6, -.45], [0, .15], [-.6, -.45]].map(([x, z]) => new THREE.Vector2(x, z + y)));
+    const ageo = new THREE.ShapeGeometry([chev(-.3), chev(.32)]).rotateX(Math.PI / 2);
+    const S = []; for (let s = 7.5; s < kart.path.total - 5; s += 5.5) S.push(s);
+    const arrows = new THREE.InstancedMesh(ageo, new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide, transparent: true, opacity: .92 }), S.length);
+    const m4 = new THREE.Matrix4(), col = new THREE.Color(), dim = new THREE.Color('#e6b81e'), hot = new THREE.Color('#fff8c0');
+    S.forEach((s, i) => { const f = kartFrame(s); f.p.addScaledVector(f.up, .035); m4.makeBasis(f.right, f.up, f.fwd).setPosition(f.p); arrows.setMatrixAt(i, m4); arrows.setColorAt(i, dim); });
+    pl.group.add(arrows);
+    updaters.push((dt, t) => { if (currentPlanet !== pl) return;
+      S.forEach((s, i) => { const k = Math.pow(Math.max(0, Math.sin(s * .12 - t * 3.2)), 6); arrows.setColorAt(i, col.copy(dim).lerp(hot, k).multiplyScalar(1 + k * .8)); });
+      arrows.instanceColor.needsUpdate = true; });
+  }
   mark('Go-Kart Grand Prix', kart.dirs[Math.floor(kart.dirs.length * .3)], null);
   { // the go-kart itself: little red racer, number 1
     const kg = new THREE.Group(), red = std('#e8262a', { roughness: .45, metalness: .2, emissive: '#601010', emissiveIntensity: .25 }), yel = std('#ffd23d', { roughness: .5 }), blk = std('#1c1c24', { roughness: .8 });

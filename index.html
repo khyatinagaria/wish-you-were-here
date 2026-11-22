@@ -157,7 +157,7 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
 #ttt-grid button.o{color:#8dffb0;text-shadow:0 0 12px rgba(141,255,176,.8)}
 #ttt-grid button.win{background:rgba(255,210,61,.25);border-color:#ffd23d}
 #pz{z-index:12;background:rgba(30,12,24,.45)}
-.pzcard{width:min(1000px,100%);box-sizing:border-box;padding:18px 20px 16px;border-radius:22px;color:#5a3a2a;background:repeating-linear-gradient(90deg,#fff6ea 0 46px,#fff0e0 46px 92px);box-shadow:0 0 0 5px #ffb3c7,0 18px 50px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:12px}
+.pzcard{width:min(1000px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:18px 20px 16px;border-radius:22px;color:#5a3a2a;background:repeating-linear-gradient(90deg,#fff6ea 0 46px,#fff0e0 46px 92px);box-shadow:0 0 0 5px #ffb3c7,0 18px 50px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:12px}
 .pz-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .pzcard .eyebrow{color:#d0476a}
 .pz-close{font-family:var(--f-pixel);font-size:20px;padding:4px 16px;border-radius:999px;border:2px solid #d9a58f;background:#fff;color:#8a4a3a;cursor:pointer}
@@ -177,11 +177,12 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
 #pz-serve:hover{background:#d0476a;border-color:#d0476a}
 .pz-board{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
 #pz-svg{width:min(290px,100%);aspect-ratio:1;display:block}
-.pz-pin{position:absolute;left:50%;top:44%;width:300px;height:30px;margin:-15px 0 0 -150px;border-radius:15px;background:linear-gradient(90deg,#8a5a34 0 13%,#e9c89a 13% 87%,#8a5a34 87%);box-shadow:0 6px 10px rgba(0,0,0,.25);opacity:0;pointer-events:none}
+.pz-pin{position:absolute;left:50%;top:44%;width:min(300px,100%);height:30px;margin:-15px 0 0 0;translate:-50% 0;border-radius:15px;background:linear-gradient(90deg,#8a5a34 0 13%,#e9c89a 13% 87%,#8a5a34 87%);box-shadow:0 6px 10px rgba(0,0,0,.25);opacity:0;pointer-events:none}
 .pz-pin.go{animation:pzroll .55s ease-in-out}
 @keyframes pzroll{0%{opacity:1;transform:translateY(-110px)}50%{transform:translateY(90px)}100%{opacity:1;transform:translateY(-40px)}}
 #pz-oven{position:absolute;inset:0 0 40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;border-radius:50% 50% 24px 24px;background:radial-gradient(ellipse at 50% 70%,#ff9a3d,#b8402a 55%,#5a2a20);box-shadow:inset 0 0 0 10px #8a4a3a;color:#fff6e0;font-family:var(--f-pixel);font-size:24px}
 #pz-oven[hidden]{display:none}
+#pz-oven:not([hidden])~#pz-step{visibility:hidden}
 .pz-bar{width:60%;height:14px;border-radius:7px;background:rgba(0,0,0,.35);overflow:hidden}
 .pz-bar i{display:block;height:100%;width:0;background:#ffd23d;transition:width .2s linear}
 #pz-step{margin:0;color:#8a5a44;font-size:20px;text-align:center;min-height:2.6em}
@@ -195,7 +196,22 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
 .pz-bins .pinic{width:40px;height:10px;border-radius:5px;background:linear-gradient(90deg,#8a5a34 0 18%,#e9c89a 18% 82%,#8a5a34 82%)}
 .pz-bins .oven{background:linear-gradient(#ffd1a8,#ffad7a);box-shadow:inset 0 -5px 0 #e0855a,0 2px 0 #b8603a}
 .pz-bins .coke{background:linear-gradient(#ffd6d6,#ffb3b3);box-shadow:inset 0 -5px 0 #e08a8a,0 2px 0 #b86060}
-@media (max-width:760px){.book{grid-template-columns:1fr}.page.right{border-left:0;border-top:2px dashed rgba(91,67,128,.28)}}
+@media (max-width:760px){.book{grid-template-columns:1fr}.page.right{border-left:0;border-top:2px dashed rgba(91,67,128,.28)}
+  /* phone: the pizza shop stacks into ticket + pizza side by side, with the bins as a full-width row under them */
+  .pzcard{padding:14px 12px 12px;gap:10px;box-shadow:0 0 0 4px #ffb3c7,0 18px 50px rgba(0,0,0,.45)}
+  .pz-top{align-items:flex-start}.pzcard .eyebrow{font-size:16px;letter-spacing:.12em;min-width:0}.pz-close{flex:none;font-size:17px;padding:3px 12px}
+  .pz-main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+  .pz-ticket{padding:10px 10px 10px;gap:8px}.pz-ticket b{font-size:20px;letter-spacing:.08em}.pz-ticket ul{font-size:18px}
+  .pz-tray{min-height:52px}#pz-serve{font-size:20px;padding:6px 10px 8px}
+  #pz-oven{font-size:19px;gap:8px;inset:0 0 30px}
+  #pz-step{font-size:17px;min-height:0;line-height:1.15}
+  .pz-bins{grid-column:1/-1;gap:6px}.pz-bins button{height:64px;font-size:16px}.pz-bins .ic{font-size:26px;height:30px}
+  /* the other little game cards get a bit tighter too */
+  .namecard{padding:20px 16px}.wardcard{padding:16px 14px}
+  #ttt-grid{grid-template-columns:repeat(3,min(84px,22vw))}#ttt-grid button{width:min(84px,22vw);height:min(84px,22vw)}
+  .big{font-size:22px;padding:7px 20px 9px}}
+@media (max-width:760px) and (orientation:portrait){#ward{place-items:end center;padding-right:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,transparent 45%,rgba(40,12,48,.6))}.wardcard{gap:6px;padding:12px 12px 14px}.wardcard .keys,.wardcard .eyebrow{display:none}.wardcard h2{font-size:26px}#ward-rows{gap:6px!important}.wrow .wl{font-size:16px}.wrow .wl i{font-size:19px}.wrow .ws{gap:6px;margin-top:2px}.wrow button{height:36px;font-size:19px}}
+@media (max-height:520px){.pz-bins button{height:56px}#pz-svg{width:min(200px,100%)}.pzcard{padding-block:12px}#snap-canvas{width:min(40vh,380px)}}
 #btn-menu{display:none;pointer-events:auto}
 @media (max-width:700px){#help{display:none}#where span{font-size:21px}.pill{font-size:16px}#prompt{bottom:calc(36% + env(safe-area-inset-bottom,0px))}
   /* phone: small icon buttons on the right, and a menu on the left that holds the planet name and the song */
@@ -299,7 +315,7 @@ h1{font-family:var(--f-dream);font-weight:400;font-style:italic;font-size:clamp(
     <div class="eyebrow">twinkle threads boutique</div>
     <h2>Dress up, dreamer</h2>
     <div id="ward-rows" style="display:flex;flex-direction:column;gap:12px;width:100%"></div>
-    <p class="keys">click to try things on · esc when you're done</p>
+    <p class="keys" id="ward-hint">click to try things on · esc when you're done</p>
     <div class="row"><button id="btn-ward-x" class="big">all done ✦</button></div>
   </div>
 </div>
@@ -359,6 +375,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+let photoBooth = null;   // the Twinkle Threads photo booth, hidden while it takes your polaroid so it can't block the shot
 
 /* ================= basics ================= */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -2630,7 +2647,7 @@ function buildPixel(pl) {
       const P = player, f0 = kartFrame(START);
       race = { t: 0, phase: 'count', k: -1, d: f0.p.clone().normalize(), fwd: f0.fwd.clone(), v: 0, steer: 0, cp: new Set(), along: -1, warned: 0, dust: 0, lap: 0 };
       Sound.sweep(200, 520, .35, 'triangle', .06); engine = Sound.engine();
-      whisper('W / S: gas and brake · A / D: steer · E: hop out', 3000);
+      whisper(isTouch ? 'left thumb: gas, brake and steer · tap “touch” to hop out' : 'W / S: gas and brake · A / D: steer · E: hop out', 3000);
       const tmpW = V(), up = V(), side = V();
       const hopOut = msg => {
         race.phase = 'parked'; race.t = 0; engine && engine.stop(); engine = null;
@@ -4008,7 +4025,7 @@ function buildBloom(pl) {
     let shimmer = 0; updaters.push((dt, t) => { curtain.color.setHSL(.9 + Math.sin(t * .8) * .05, .9, .74 + Math.sin(t * 2.3) * .05); if ((shimmer -= dt) < 0 && mode === 'play' && currentPlanet === pl) { shimmer = .25; parts.emit(shop.localToWorld(V(R(-.5, .5), R(.2, 1.9), 1.9)), shopD.clone().multiplyScalar(R(.3, .8)), choice(['#fff2a8', '#ffffff', '#ff9ad5']), R(.8, 1.4), R(.06, .12)); } });
     mark('Twinkle Threads boutique', shopD, null); note('style', 'Change your look at Twinkle Threads');
     // the photo booth
-    const booth = placeFacing(pl, new THREE.Group(), boothD, 0, ll(14, 118));
+    const booth = placeFacing(pl, new THREE.Group(), boothD, 0, ll(14, 118)); photoBooth = booth;
     const mint = std('#bff5e4', { emissive: '#5fe0c0', emissiveIntensity: .3, roughness: .6 });
     booth.add(mesh(new THREE.BoxGeometry(1.5, 2.3, 1.3), mint, 0, 1.15, 0), mesh(new THREE.BoxGeometry(1.62, .14, 1.42), gold, 0, 2.33, 0));
     const ct = canvasTex(64, 8, (g, w) => { for (let x = 0; x < 8; x++) { g.fillStyle = x % 2 ? '#ffd6f0' : '#ff7ab8'; g.fillRect(x * 8, 0, 8, 8); } });
@@ -4376,9 +4393,11 @@ cv.addEventListener('touchmove', e => {
 }, { passive: false });
 const endTouch = e => { for (const t of e.changedTouches) { if (t.identifier === stick.id) { stick.id = null; stick.dx = stick.dy = 0; stickEl.hidden = true; } if (t.identifier === look.id) look.id = null; } };
 cv.addEventListener('touchend', endTouch); cv.addEventListener('touchcancel', endTouch);
-$('t-jump').addEventListener('touchstart', e => { e.preventDefault(); jumpQueued = true; }, { passive: false });
+$('t-jump').addEventListener('touchstart', e => { e.preventDefault(); jumpQueued = true; if (mode === 'play') keys.add('Space'); }, { passive: false });
+['touchend', 'touchcancel'].forEach(ev => $('t-jump').addEventListener(ev, () => keys.delete('Space')));
 $('t-jump').addEventListener('click', () => jumpQueued = true);
-$('t-use').addEventListener('touchstart', e => { e.preventDefault(); tryInteract(); }, { passive: false });
+$('t-use').addEventListener('touchstart', e => { e.preventDefault(); if (mode === 'play') keys.add('KeyE'); tryInteract(); }, { passive: false });
+['touchend', 'touchcancel'].forEach(ev => $('t-use').addEventListener(ev, () => keys.delete('KeyE')));
 $('t-use').addEventListener('click', () => tryInteract());
 
 let nearest = null, useCooldown = 0;
@@ -4409,7 +4428,7 @@ function enter() {
 }
 $('btn-enter').addEventListener('click', enter);
 $('btn-stay').addEventListener('click', () => { $('ending').classList.add('gone'); $('ending').setAttribute('aria-hidden', 'true'); mode = 'play'; });
-if (isTouch) { $('keys-desk').hidden = true; $('keys-touch').hidden = false; }
+if (isTouch) { $('keys-desk').hidden = true; $('keys-touch').hidden = false; $('ward-hint').textContent = 'tap to try things on'; }
 
 /* ================= simulation ================= */
 const G = 30, JUMP = 11, WALK = 7.5, RUN = 12.5;
@@ -4535,7 +4554,8 @@ function placeCamera(dt) {
   const P = player;
   camUp.lerp(P.up, 1 - Math.exp(-dt * 5)).normalize();
   dreamer.visible = !fpv || !!camOverride;
-  if (camOverride) { const o = camOverride(); camPos.lerp(o.pos, 1 - Math.exp(-dt * 5)); camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(o.look); return; }   // dressing room / photo booth
+  if (photoBooth) photoBooth.visible = !snapOn;
+  if (camOverride) { const o = camOverride(); if (snapOn) camPos.copy(o.pos); else camPos.lerp(o.pos, 1 - Math.exp(-dt * 5)); camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(o.look); return; }   // dressing room / photo booth
   const cf = tripYaw ? tripF.copy(P.fwd).applyAxisAngle(P.up, tripYaw) : P.fwd;   // a mushroom makes the world slowly spin around you
   if (fpv) {
     const a = -(pitch - .38) * 1.2 - (P.sit ? .14 : 0);   // mouse up/down tilts your head
@@ -4611,7 +4631,7 @@ function openTTT(cb) {
 }
 function tttReset() {
   tttB = Array(9).fill(''); tttOver = false; tttRes = null; $('btn-ttt-again').hidden = true;
-  $('ttt-title').textContent = 'Tic-tac-toe, earthling?'; $('ttt-hint').textContent = "you're ✕ and you go first · click a square or press 1-9 · esc to walk away";
+  $('ttt-title').textContent = 'Tic-tac-toe, earthling?'; $('ttt-hint').textContent = isTouch ? "you're ✕ and you go first · tap a square" : "you're ✕ and you go first · click a square or press 1-9 · esc to walk away";
   tttDraw(); setTimeout(() => $('ttt-grid').children[4].focus(), 60);
 }
 function tttDraw(line) {
@@ -4633,7 +4653,7 @@ function tttPlay(i) {
   tttB[i] = 'x'; Sound.tone(660, .12, 'square', .05);
   if (tttEnd()) return;
   tttOver = true; tttDraw(); $('ttt-hint').textContent = 'the alien is thinking...';
-  setTimeout(() => { if (!tttOn) return; tttOver = false; tttAlienMove(); if (!tttEnd()) $('ttt-hint').textContent = 'your turn · click a square or press 1-9'; }, 700);
+  setTimeout(() => { if (!tttOn) return; tttOver = false; tttAlienMove(); if (!tttEnd()) $('ttt-hint').textContent = (isTouch ? 'your turn · tap a square' : 'your turn · click a square or press 1-9'); }, 700);
 }
 function tttEnd() {
   const w = tttWinner(tttB), full = tttB.every(Boolean);
@@ -4677,7 +4697,7 @@ function openWardrobe(faceDir) {
   if (mode !== 'play') return false;
   wardOn = true; mode = 'type'; keys.clear(); stick.dx = stick.dy = 0; if (locked()) document.exitPointerLock();
   if (faceDir) player.face.copy(faceDir);
-  camOverride = frontView(3.4, .95, 0); wardBuild();
+  camOverride = innerWidth < innerHeight ? () => { const P = player; return { pos: P.p.clone().addScaledVector(P.up, 1.3).addScaledVector(P.face, 6.2), look: P.p.clone().addScaledVector(P.up, -.75) }; } : frontView(3.4, .95, 0); wardBuild();
   $('ward').classList.remove('gone'); $('ward').setAttribute('aria-hidden', 'false'); arp([784, 988, 1175], .08, 'sine', .06, .5); return true;
 }
 function closeWardrobe() {
@@ -4687,16 +4707,41 @@ function closeWardrobe() {
 }
 $('btn-ward-x').addEventListener('click', closeWardrobe);
 
-/* ---- the photo booth: 3, 2, 1, flash, and a polaroid of you with the planets floating behind ---- */
+/* ---- the photo booth: 3, 2, 1, flash, and a polaroid of you with the planets floating behind ----
+   the booth itself is hidden while it takes the shot, and the camera swings round until nothing stands
+   between the lens and you (and, if it can, nothing right behind you either) */
 let snapOn = false, snapTimers = [];
+const photoRay = new THREE.Raycaster();
+function photoBlocked(from, dir, far = 9) {
+  photoRay.set(from, dir); photoRay.far = far; photoRay.camera = camera;
+  const hits = photoRay.intersectObjects(scene.children, true);
+  for (const h of hits) { let o = h.object, ok = !!o.isMesh; if (!ok) continue;
+    for (; o; o = o.parent) { if (!o.visible || o === dreamer || o === photoBooth || o === skyGroup) { ok = false; break; } } if (ok) return h.distance; }
+  return Infinity;
+}
 function photoPose() {
   const P = player, u = P.up, head = P.p.clone().addScaledVector(u, 1.3);
   let best = null, bs = -9;
   for (const pl of PLANETS) { if (pl === currentPlanet) continue; const d = pl.center.clone().sub(head).normalize(), e = d.dot(u), sc = e > .08 && e < .85 ? 1 - Math.abs(e - .4) : -1 + e; if (sc > bs) { bs = sc; best = d; } }
-  const h = best.clone().addScaledVector(u, -best.dot(u)); if (h.lengthSq() < 1e-4) h.copy(P.face).negate(); h.normalize();
+  const h0 = best.clone().addScaledVector(u, -best.dot(u)); if (h0.lengthSq() < 1e-4) h0.copy(P.face).negate(); h0.normalize();
   const th = Math.min(.55, Math.asin(Math.min(.95, Math.max(0, best.dot(u)))) * .6);
-  P.face.copy(h).negate();
-  return () => ({ pos: P.p.clone().addScaledVector(u, 1.0).addScaledVector(h, -3.6), look: head.clone().addScaledVector(h, 3.6).addScaledVector(u, 3.6 * Math.tan(th)) });
+  const DIST = 4.3, camAt = hk => P.p.clone().addScaledVector(u, .9).addScaledVector(hk, -DIST);
+  // try facing the planet first, then swing round in 30° steps: the lens must see you, and a clear backdrop is a bonus
+  let h = h0, bestScore = -1;
+  try {
+    for (let k = 0; k < 12; k++) {
+      const hk = h0.clone().applyAxisAngle(u, (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 6);
+      const c = camAt(hk), toCam = c.clone().sub(head), L = toCam.length();
+      const seesYou = photoBlocked(head, toCam.normalize(), L + .3) > L + .2;
+      const back = photoBlocked(head, hk.clone().multiplyScalar(Math.cos(th)).addScaledVector(u, Math.sin(th)).normalize(), 6);
+      const score = (seesYou ? 10 : 0) + Math.min(6, back) - k * .05;
+      if (score > bestScore) { bestScore = score; h = hk; }
+      if (seesYou && back === Infinity) break;
+    }
+  } catch (_) {}
+  P.face.copy(h).negate();   // you turn round to smile at the camera
+  const cam = camAt(h), look = head.clone().addScaledVector(u, -.15).addScaledVector(h, DIST).addScaledVector(u, DIST * Math.tan(th) * .45);   // you sit in the middle, the planet floats above
+  return () => ({ pos: cam, look });
 }
 function takePhoto() {
   if (mode !== 'play' && !snapOn) return false;
